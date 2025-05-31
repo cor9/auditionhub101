@@ -7,3 +7,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://audition-hub-101.onrender.com
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
