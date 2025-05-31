@@ -10,6 +10,21 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  iconColor: string;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+interface TestimonialCardProps {
+  quote: string;
+  author: string;
+  role: string;
+}
+
 export default function Home() {
   return (
     <div className="flex flex-col">
@@ -197,7 +212,7 @@ function FeatureCard({
   iconColor,
   gradientFrom,
   gradientTo,
-}) {
+}: FeatureCardProps) {
   return (
     <div className="relative overflow-hidden rounded-lg border bg-background p-6 shadow-sm transition-all hover:shadow-md">
       <div className="flex flex-col space-y-4">
@@ -219,7 +234,7 @@ function FeatureCard({
   );
 }
 
-function TestimonialCard({ quote, author, role }) {
+function TestimonialCard({ quote, author, role }: TestimonialCardProps) {
   return (
     <div className="rounded-lg border bg-card p-6 shadow-sm">
       <div className="flex flex-col space-y-4">
