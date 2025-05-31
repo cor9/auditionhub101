@@ -1,18 +1,17 @@
-import { 
-  AuditionStatus, 
-  AuditionType,
-  ContactType,
-  ExpenseCategory,
-  InsightType,
-  BookingType,
-  BookingStatus,
-  PaymentStatus,
-  SubscriptionTier,
-  SubscriptionStatus
-} from '@prisma/client';
+// Enums
+export type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
+export type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
+export type ContactType = 'CASTING_DIRECTOR' | 'AGENT' | 'MANAGER' | 'COACH' | 'OTHER';
+export type ExpenseCategory = 'COACHING' | 'SELF_TAPE_GEAR' | 'TRAVEL' | 'WARDROBE' | 'HEADSHOTS' | 'MEMBERSHIPS' | 'OTHER';
+export type InsightType = 'PERFORMANCE' | 'CASTING_TRENDS' | 'CALLBACKS_ANALYSIS' | 'GENERAL_TIPS';
+export type BookingType = 'COACHING_SESSION' | 'SELF_TAPE_FEEDBACK' | 'AUDITION_PREP_GUIDE';
+export type BookingStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED';
+export type SubscriptionTier = 'FREE' | 'PREMIUM_MONTHLY' | 'PREMIUM_ANNUAL';
+export type SubscriptionStatus = 'ACTIVE' | 'CANCELED' | 'PAUSED';
 
 // User type definitions
-export type UserProfile = {
+export interface UserProfile {
   id: string;
   email: string;
   name?: string;
@@ -29,10 +28,10 @@ export type UserProfile = {
   phone?: string;
   location?: string;
   timezone?: string;
-};
+}
 
 // Audition type definitions
-export type AuditionData = {
+export interface AuditionData {
   id: string;
   projectTitle: string;
   roleName: string;
@@ -55,10 +54,10 @@ export type AuditionData = {
   submittedDate?: Date;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Contact type definitions
-export type ContactData = {
+export interface ContactData {
   id: string;
   name: string;
   type: ContactType;
@@ -71,10 +70,10 @@ export type ContactData = {
   lastContacted?: Date;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Expense type definitions
-export type ExpenseData = {
+export interface ExpenseData {
   id: string;
   amount: number;
   description?: string;
@@ -86,20 +85,20 @@ export type ExpenseData = {
   auditionId?: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Insight type definitions
-export type InsightData = {
+export interface InsightData {
   id: string;
   title: string;
   content: string;
   type: InsightType;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Booking type definitions
-export type BookingData = {
+export interface BookingData {
   id: string;
   type: BookingType;
   status: BookingStatus;
@@ -111,10 +110,10 @@ export type BookingData = {
   stripePaymentId?: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Subscription type definitions
-export type SubscriptionData = {
+export interface SubscriptionData {
   id: string;
   tier: SubscriptionTier;
   status: SubscriptionStatus;
@@ -125,10 +124,10 @@ export type SubscriptionData = {
   stripeSubscriptionId?: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Email Log type definitions
-export type EmailLogData = {
+export interface EmailLogData {
   id: string;
   sender?: string;
   recipient?: string;
@@ -139,10 +138,10 @@ export type EmailLogData = {
   errorMessage?: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Dashboard stats and analytics
-export type DashboardStats = {
+export interface DashboardStats {
   totalAuditions: number;
   pendingAuditions: number;
   submittedAuditions: number;
@@ -152,19 +151,19 @@ export type DashboardStats = {
   upcomingAuditions: AuditionData[];
   recentExpenses: ExpenseData[];
   insights: InsightData[];
-};
+}
 
-export type AuditionsByStatus = {
+export interface AuditionsByStatus {
   status: AuditionStatus;
   count: number;
-};
+}
 
-export type ExpensesByCategory = {
+export interface ExpensesByCategory {
   category: ExpenseCategory;
   totalAmount: number;
-};
+}
 
-export type AuditionsByMonth = {
+export interface AuditionsByMonth {
   month: string;
   count: number;
-};
+}
