@@ -17,12 +17,14 @@ import {
   MessageCircle,
   Video,
 } from "lucide-react";
+import { useStripeCheckout } from "@/hooks/use-stripe-checkout";
+import { toast } from "sonner";
 
 const services = [
   {
     title: "Audition Prep Guide",
     description: "Professional, detailed, and printable PDF audition guide—built to boost your performance.",
-    price: "$9.99",
+    price: 9.99,
     features: [
       "Fill out a simple form",
       "Attach casting sides (PDF)",
@@ -31,7 +33,6 @@ const services = [
       "Delivered via email"
     ],
     icon: BookOpen,
-    link: "https://buy.stripe.com/00gaGl6dR2Mx7mgg29?locale=en&__embed_source=buy_btn_1RLaHfDALb4OhZMWuzajJ1yh",
     color: "text-blue-500",
     gradientFrom: "from-blue-500/20",
     gradientTo: "to-blue-500/5"
@@ -39,7 +40,7 @@ const services = [
   {
     title: "Self Tape Feedback",
     description: "Honest & effective feedback from Coach Corey Ralston within 12 hours.",
-    price: "$22",
+    price: 22,
     features: [
       "Detailed performance notes",
       "Correction ideas",
@@ -48,7 +49,6 @@ const services = [
       "Up to 7 minutes of video"
     ],
     icon: Camera,
-    link: "https://buy.stripe.com/bJe5kDcSrf677IxdgC2wU3k",
     color: "text-purple-500",
     gradientFrom: "from-purple-500/20",
     gradientTo: "to-purple-500/5"
@@ -56,7 +56,7 @@ const services = [
   {
     title: "Bold Choices Game",
     description: "Make distinctive choices that help you stand out in auditions.",
-    price: "FREE",
+    price: 0,
     features: [
       "Interactive scene exploration",
       "Develop unique choices",
@@ -65,7 +65,6 @@ const services = [
       "Immediate access"
     ],
     icon: Gamepad2,
-    link: "https://www.childactor101.com/home/bold-choices",
     color: "text-green-500",
     gradientFrom: "from-green-500/20",
     gradientTo: "to-green-500/5"
@@ -73,7 +72,7 @@ const services = [
   {
     title: "Private Audition Coaching",
     description: "One-on-one Zoom coaching for competitive advantage in auditions.",
-    price: "$85",
+    price: 85,
     features: [
       "Strategic choice development",
       "Confidence building",
@@ -82,7 +81,6 @@ const services = [
       "Zoom session"
     ],
     icon: MessageCircle,
-    link: "https://buy.stripe.com/14kbKpcCfevfeOIeXz",
     color: "text-rose-500",
     gradientFrom: "from-rose-500/20",
     gradientTo: "to-rose-500/5"
@@ -90,7 +88,7 @@ const services = [
   {
     title: "Parents Guide to Perfect Self Tapes",
     description: "Comprehensive course for creating professional self-tapes that get noticed.",
-    price: "Learn More",
+    price: 49.99,
     features: [
       "Easy navigation",
       "Video lessons",
@@ -99,12 +97,75 @@ const services = [
       "First-hand testimonials"
     ],
     icon: Video,
-    link: "https://buy.stripe.com/dR6g0F1XBdrbcGA4iZ",
     color: "text-amber-500",
     gradientFrom: "from-amber-500/20",
     gradientTo: "to-amber-500/5"
   }
 ];
+
+interface ServiceCardProps {
+  service: typeof services[0];
+}
+
+function ServiceCard({ service }: ServiceCardProps) {
+  const { checkout, isLoading } = useStripeCheckout();
+
+  const handlePurchase = async () => {
+    try {
+      if (service.price === 0) {
+        // Handle free service differently
+        toast.success("Access granted to Bold Choices Game!");
+        return;
+      }
+
+      await checkout({
+        price: service.price,
+        name: service.title,
+        description: service.description,
+      });
+    } catch (error) {
+      toast.error("Payment failed. Please try again.");
+    }
+  };
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <div
+            className={`rounded-full bg-gradient-to-b p-2 ${service.gradientFrom} ${service.gradientTo}`}
+          >
+            <service.icon className={`h-6 w-6 ${service.color}`} />
+          </div>
+          <CardTitle>{service.title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <CardDescription className="mb-4">{service.description}</CardDescription>
+        <ul className="space-y-2 text-sm">
+          {service.features.map((feature) => (
+            <li key={feature} className="flex items-center">
+              <div className="mr-2 h-1.5 w-1.5 rounded-full bg-primary" />
+              {feature}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-4">
+        <div className="text-2xl font-bold text-primary">
+          {service.price === 0 ? "FREE" : `$${service.price.toFixed(2)}`}
+        </div>
+        <Button 
+          className="w-full" 
+          onClick={handlePurchase}
+          disabled={isLoading}
+        >
+          {isLoading ? "Processing..." : service.price === 0 ? "Access Now" : "Purchase"}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function ServicesPage() {
   return (
@@ -118,35 +179,7 @@ export default function ServicesPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
-          <Card key={service.title} className="flex flex-col">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <div
-                  className={`rounded-full bg-gradient-to-b p-2 ${service.gradientFrom} ${service.gradientTo}`}
-                >
-                  <service.icon className={`h-6 w-6 ${service.color}`} />
-                </div>
-                <CardTitle>{service.title}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <CardDescription className="mb-4">{service.description}</CardDescription>
-              <ul className="space-y-2 text-sm">
-                {service.features.map((feature) => (
-                  <li key={feature} className="flex items-center">
-                    <div className="mr-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <div className="text-2xl font-bold text-primary">{service.price}</div>
-              <Button className="w-full" asChild>
-                <Link href={service.link} target="_blank">Get Started</Link>
-              </Button>
-            </CardFooter>
-          </Card>
+          <ServiceCard key={service.title} service={service} />
         ))}
       </div>
     </div>
