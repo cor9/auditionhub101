@@ -11,7 +11,7 @@ import {
   LogIn,
   Menu,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -86,14 +86,17 @@ export default function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
-            <Link
-              href="/"
-              className="flex items-center gap-x-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <FilmIcon className="h-6 w-6 text-primary" />
-              <span className="font-bold">Audition Hub 101</span>
-            </Link>
+            <SheetHeader>
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <Link
+                href="/"
+                className="flex items-center gap-x-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <FilmIcon className="h-6 w-6 text-primary" />
+                <span className="font-bold">Audition Hub 101</span>
+              </Link>
+            </SheetHeader>
             <div className="mt-8 flex flex-col gap-4">
               {routes.map((route) => (
                 <Link
