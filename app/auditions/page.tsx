@@ -24,9 +24,12 @@ import {
   ThumbsUpIcon,
   X,
 } from "lucide-react";
-import { AuditionStatus, AuditionType } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+// Define enums locally until Prisma is set up
+type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
+type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
 
 // Mock data for demonstration
 const mockAuditions = [
