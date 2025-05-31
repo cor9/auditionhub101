@@ -1,0 +1,328 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile information
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Child actor details
+  childName           String?
+  childAge            Int?
+  childGender         String?
+  childEthnicity      String?
+  childHeight         String?
+  childWeight         String?
+  childHairColor      String?
+  childEyeColor       String?
+  parentName          String?
+  phone               String?
+  location            String?
+  timezone            String?
+  
+  // Relationships
+  auditions      Audition[]
+  contacts       Contact[]
+  expenses       Expense[]
+  insights       Insight[]
+  bookings       Booking[]
+  subscriptions  Subscription[]
+  emailLogs      EmailLog[]
+}
+
+// Audition types enum
+enum AuditionType {
+  TV
+  FILM
+  COMMERCIAL
+  THEATRE
+  VOICEOVER
+  OTHER
+}
+
+// Audition status enum
+enum AuditionStatus {
+  PENDING
+  SUBMITTED
+  CALLBACK
+  BOOKED
+  RELEASED
+}
+
+// Audition model for tracking auditions
+model Audition {
+  id              String          @id @default(cuid())
+  projectTitle    String
+  roleName        String
+  type            AuditionType    @default(OTHER)
+  status          AuditionStatus  @default(PENDING)
+  description     String?
+  auditionDate    DateTime?
+  callbackDate    DateTime?
+  location        String?
+  virtualLink     String?
+  notes           String?
+  sides          String?         // URL to uploaded sides/script
+  selftapeUrl    String?         // URL to uploaded selftape if applicable
+  
+  // Casting details
+  castingCompany  String?
+  castingDirector String?
+  castingAssistant String?
+  castingEmail    String?
+  castingPhone    String?
+  
+  // Submission details
+  submittedBy     String?   // Agent, Self-Submission, etc.
+  submittedDate   DateTime?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses        Expense[]
+  contacts        AuditionContact[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([auditionDate])
+}
+
+// Contact type enum
+enum ContactType {
+  CASTING_DIRECTOR
+  AGENT
+  MANAGER
+  COACH
+  OTHER
+}
+
+// Contact model for CRM features
+model Contact {
+  id              String      @id @default(cuid())
+  name            String
+  type            ContactType @default(OTHER)
+  company         String?
+  email           String?
+  phone           String?
+  website         String?
+  instagram       String?
+  notes           String?
+  lastContacted   DateTime?
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditions       AuditionContact[]
+  
+  @@index([userId])
+  @@index([type])
+}
+
+// Junction table for many-to-many relationship between Audition and Contact
+model AuditionContact {
+  auditionId      String
+  contactId       String
+  role            String?  // Role of this contact for this audition
+  notes           String?
+  
+  // Relationships
+  audition        Audition  @relation(fields: [auditionId], references: [id], onDelete: Cascade)
+  contact         Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  @@id([auditionId, contactId])
+  @@index([auditionId])
+  @@index([contactId])
+}
+
+// Expense category enum
+enum ExpenseCategory {
+  COACHING
+  SELF_TAPE_GEAR
+  TRAVEL
+  WARDROBE
+  HEADSHOTS
+  MEMBERSHIPS
+  OTHER
+}
+
+// Expense model for financial tracking
+model Expense {
+  id              String          @id @default(cuid())
+  amount          Float
+  description     String?
+  category        ExpenseCategory @default(OTHER)
+  date            DateTime
+  receiptUrl      String?         // URL to uploaded receipt
+  reimbursable    Boolean         @default(false)
+  reimbursed      Boolean         @default(false)
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditionId      String?
+  audition        Audition?       @relation(fields: [auditionId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([auditionId])
+  @@index([category])
+}
+
+// Insight type enum
+enum InsightType {
+  PERFORMANCE
+  CASTING_TRENDS
+  CALLBACKS_ANALYSIS
+  GENERAL_TIPS
+}
+
+// Insight model for AI-generated insights
+model Insight {
+  id              String      @id @default(cuid())
+  title           String
+  content         String
+  type            InsightType @default(GENERAL_TIPS)
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([type])
+}
+
+// Booking type enum
+enum BookingType {
+  COACHING_SESSION
+  SELF_TAPE_FEEDBACK
+  AUDITION_PREP_GUIDE
+}
+
+// Booking status enum
+enum BookingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+// Payment status enum
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+// Booking model for monetized services
+model Booking {
+  id              String          @id @default(cuid())
+  type            BookingType     @default(COACHING_SESSION)
+  status          BookingStatus   @default(SCHEDULED)
+  startTime       DateTime
+  endTime         DateTime?
+  notes           String?
+  
+  // Payment details
+  amount          Float
+  paymentStatus   PaymentStatus   @default(PENDING)
+  stripePaymentId String?
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+// Subscription tier enum
+enum SubscriptionTier {
+  FREE
+  PREMIUM_MONTHLY
+  PREMIUM_ANNUAL
+}
+
+// Subscription status enum
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAUSED
+}
+
+// Subscription model for monetized app tiers
+model Subscription {
+  id              String              @id @default(cuid())
+  tier            SubscriptionTier    @default(FREE)
+  status          SubscriptionStatus  @default(ACTIVE)
+  startDate       DateTime            @default(now())
+  endDate         DateTime?
+  autoRenew       Boolean             @default(true)
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relationships
+  userId          String              @unique
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([tier])
+  @@index([status])
+}
+
+// Email log model for email parsing and troubleshooting
+model EmailLog {
+  id              String    @id @default(cuid())
+  sender          String?
+  recipient       String?
+  subject         String?
+  receivedAt      DateTime
+  parsedContent   String?
+  status          String    // Success, Failed, Pending
+  errorMessage    String?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relationships
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+}
