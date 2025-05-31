@@ -17,7 +17,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { AuditionStatus } from "@prisma/client";
 import {
   ArrowUpIcon,
   ArrowDownIcon,
@@ -28,8 +27,35 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Define types locally until Prisma is set up
+type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
+
+interface AuditionStatusCount {
+  status: AuditionStatus;
+  count: number;
+}
+
+interface AuditionMonthCount {
+  name: string;
+  count: number;
+}
+
+interface ExpenseCategory {
+  name: string;
+  value: number;
+}
+
+interface UpcomingAudition {
+  id: string;
+  projectTitle: string;
+  roleName: string;
+  auditionDate: Date;
+  castingDirector: string;
+  location: string;
+}
+
 // Mock data for demonstration
-const mockAuditionsByStatus = [
+const mockAuditionsByStatus: AuditionStatusCount[] = [
   { status: "PENDING", count: 5 },
   { status: "SUBMITTED", count: 12 },
   { status: "CALLBACK", count: 3 },
@@ -37,7 +63,7 @@ const mockAuditionsByStatus = [
   { status: "RELEASED", count: 8 },
 ];
 
-const mockAuditionsByMonth = [
+const mockAuditionsByMonth: AuditionMonthCount[] = [
   { name: "Jan", count: 4 },
   { name: "Feb", count: 3 },
   { name: "Mar", count: 5 },
@@ -52,7 +78,7 @@ const mockAuditionsByMonth = [
   { name: "Dec", count: 4 },
 ];
 
-const mockExpensesByCategory = [
+const mockExpensesByCategory: ExpenseCategory[] = [
   { name: "Coaching", value: 1200 },
   { name: "Self Tape", value: 800 },
   { name: "Travel", value: 500 },
@@ -60,7 +86,7 @@ const mockExpensesByCategory = [
   { name: "Headshots", value: 1000 },
 ];
 
-const mockUpcomingAuditions = [
+const mockUpcomingAuditions: UpcomingAudition[] = [
   {
     id: "1",
     projectTitle: "Disney Channel Series",
@@ -366,7 +392,16 @@ export default function DashboardPage() {
   );
 }
 
-function StatsCard({ title, value, description, icon: Icon, trend, trendValue }) {
+interface StatsCardProps {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ElementType;
+  trend?: "up" | "down";
+  trendValue?: string;
+}
+
+function StatsCard({ title, value, description, icon: Icon, trend, trendValue }: StatsCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -396,7 +431,11 @@ function StatsCard({ title, value, description, icon: Icon, trend, trendValue })
   );
 }
 
-function UpcomingAuditionCard({ audition }) {
+interface UpcomingAuditionCardProps {
+  audition: UpcomingAudition;
+}
+
+function UpcomingAuditionCard({ audition }: UpcomingAuditionCardProps) {
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <div className="flex flex-col md:flex-row">
