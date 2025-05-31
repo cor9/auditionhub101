@@ -17,7 +17,6 @@ import {
   MessageCircle,
   Video,
 } from "lucide-react";
-import { useStripeCheckout } from "@/hooks/use-stripe-checkout";
 import { toast } from "sonner";
 
 const services = [
@@ -33,6 +32,7 @@ const services = [
       "Delivered via email"
     ],
     icon: BookOpen,
+    checkoutUrl: "https://buy.stripe.com/00gaGl6dR2Mx7mgg29",
     color: "text-blue-500",
     gradientFrom: "from-blue-500/20",
     gradientTo: "to-blue-500/5"
@@ -49,6 +49,7 @@ const services = [
       "Up to 7 minutes of video"
     ],
     icon: Camera,
+    checkoutUrl: "https://buy.stripe.com/bJe5kDcSrf677IxdgC",
     color: "text-purple-500",
     gradientFrom: "from-purple-500/20",
     gradientTo: "to-purple-500/5"
@@ -65,6 +66,7 @@ const services = [
       "Immediate access"
     ],
     icon: Gamepad2,
+    checkoutUrl: "https://www.childactor101.com/home/bold-choices",
     color: "text-green-500",
     gradientFrom: "from-green-500/20",
     gradientTo: "to-green-500/5"
@@ -81,6 +83,7 @@ const services = [
       "Zoom session"
     ],
     icon: MessageCircle,
+    checkoutUrl: "https://buy.stripe.com/14kbKpcCfevfeOIeXz",
     color: "text-rose-500",
     gradientFrom: "from-rose-500/20",
     gradientTo: "to-rose-500/5"
@@ -97,6 +100,7 @@ const services = [
       "First-hand testimonials"
     ],
     icon: Video,
+    checkoutUrl: "https://buy.stripe.com/dR6g0F1XBdrbcGA4iZ",
     color: "text-amber-500",
     gradientFrom: "from-amber-500/20",
     gradientTo: "to-amber-500/5"
@@ -108,23 +112,9 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service }: ServiceCardProps) {
-  const { checkout, isLoading } = useStripeCheckout();
-
-  const handlePurchase = async () => {
-    try {
-      if (service.price === 0) {
-        // Handle free service differently
-        toast.success("Access granted to Bold Choices Game!");
-        return;
-      }
-
-      await checkout({
-        price: service.price,
-        name: service.title,
-        description: service.description,
-      });
-    } catch (error) {
-      toast.error("Payment failed. Please try again.");
+  const handleAccess = () => {
+    if (service.price === 0) {
+      toast.success("Access granted to Bold Choices Game!");
     }
   };
 
@@ -157,10 +147,16 @@ function ServiceCard({ service }: ServiceCardProps) {
         </div>
         <Button 
           className="w-full" 
-          onClick={handlePurchase}
-          disabled={isLoading}
+          asChild={service.price > 0}
+          onClick={service.price === 0 ? handleAccess : undefined}
         >
-          {isLoading ? "Processing..." : service.price === 0 ? "Access Now" : "Purchase"}
+          {service.price > 0 ? (
+            <Link href={service.checkoutUrl} target="_blank">
+              Purchase
+            </Link>
+          ) : (
+            "Access Now"
+          )}
         </Button>
       </CardFooter>
     </Card>

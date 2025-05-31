@@ -6,22 +6,16 @@ import { ModeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   BarChart3,
-  Calendar,
-  Contact,
   FilmIcon,
   Home,
   LogIn,
   Menu,
-  MessageSquarePlus,
-  Receipt,
-  Settings,
-  User,
-  X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+// Only include routes that are actually implemented
 const routes = [
   {
     label: "Home",
@@ -42,40 +36,10 @@ const routes = [
     color: "text-pink-700",
   },
   {
-    label: "Calendar",
-    icon: Calendar,
-    href: "/calendar",
-    color: "text-orange-500",
-  },
-  {
-    label: "Contacts",
-    icon: Contact,
-    href: "/contacts",
+    label: "Services",
+    icon: FilmIcon,
+    href: "/services",
     color: "text-emerald-500",
-  },
-  {
-    label: "Expenses",
-    icon: Receipt,
-    href: "/expenses",
-    color: "text-blue-500",
-  },
-  {
-    label: "Coaching",
-    icon: MessageSquarePlus,
-    href: "/coaching",
-    color: "text-rose-500",
-  },
-  {
-    label: "Profile",
-    icon: User,
-    href: "/profile",
-    color: "text-gray-500",
-  },
-  {
-    label: "Settings",
-    icon: Settings,
-    href: "/settings",
-    color: "text-slate-500",
   },
 ];
 
@@ -114,7 +78,6 @@ export default function Navbar() {
           </nav>
         </div>
 
-        {/* Mobile Navbar */}
         <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon" className="mr-2">
