@@ -1,9 +1,9 @@
 services:
   - type: web
     name: audition-hub-101
-    env: node
+    env: static
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    staticPublishPath: ./out
     envVars:
       - key: NODE_ENV
         value: production
