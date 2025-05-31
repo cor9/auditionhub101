@@ -27,18 +27,30 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Define enums locally until Prisma is set up
+// Define types locally until Prisma is set up
 type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
 type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
 
+interface Audition {
+  id: string;
+  projectTitle: string;
+  roleName: string;
+  type: AuditionType;
+  status: AuditionStatus;
+  auditionDate: Date;
+  castingCompany: string;
+  castingDirector: string;
+  location: string;
+}
+
 // Mock data for demonstration
-const mockAuditions = [
+const mockAuditions: Audition[] = [
   {
     id: "1",
     projectTitle: "Disney Channel Series",
     roleName: "Lead Child Role",
-    type: "TV" as AuditionType,
-    status: "PENDING" as AuditionStatus,
+    type: "TV",
+    status: "PENDING",
     auditionDate: new Date("2025-07-15T14:30:00"),
     castingCompany: "Disney Casting",
     castingDirector: "Sarah Johnson",
@@ -48,8 +60,8 @@ const mockAuditions = [
     id: "2",
     projectTitle: "Netflix Family Film",
     roleName: "Supporting Role",
-    type: "FILM" as AuditionType,
-    status: "SUBMITTED" as AuditionStatus,
+    type: "FILM",
+    status: "SUBMITTED",
     auditionDate: new Date("2025-07-18T10:00:00"),
     castingCompany: "Netflix Casting",
     castingDirector: "Michael Chen",
@@ -59,8 +71,8 @@ const mockAuditions = [
     id: "3",
     projectTitle: "National Cereal Commercial",
     roleName: "Energetic Kid",
-    type: "COMMERCIAL" as AuditionType,
-    status: "CALLBACK" as AuditionStatus,
+    type: "COMMERCIAL",
+    status: "CALLBACK",
     auditionDate: new Date("2025-07-20T16:15:00"),
     castingCompany: "Commercial Casting Inc.",
     castingDirector: "Lisa Rodriguez",
@@ -70,8 +82,8 @@ const mockAuditions = [
     id: "4",
     projectTitle: "Summer Camp Adventure",
     roleName: "Camp Counselor",
-    type: "FILM" as AuditionType,
-    status: "BOOKED" as AuditionStatus,
+    type: "FILM",
+    status: "BOOKED",
     auditionDate: new Date("2025-07-05T11:00:00"),
     castingCompany: "Independent Films",
     castingDirector: "Jason Taylor",
@@ -81,8 +93,8 @@ const mockAuditions = [
     id: "5",
     projectTitle: "Educational Series",
     roleName: "Science Kid",
-    type: "TV" as AuditionType,
-    status: "RELEASED" as AuditionStatus,
+    type: "TV",
+    status: "RELEASED",
     auditionDate: new Date("2025-06-28T13:45:00"),
     castingCompany: "Educational Media",
     castingDirector: "Patricia Wong",
@@ -296,7 +308,11 @@ export default function AuditionsPage() {
   );
 }
 
-function AuditionCard({ audition }) {
+interface AuditionCardProps {
+  audition: Audition;
+}
+
+function AuditionCard({ audition }: AuditionCardProps) {
   const StatusIcon = statusIcons[audition.status];
 
   return (
@@ -370,7 +386,12 @@ function AuditionCard({ audition }) {
   );
 }
 
-function EmptyState({ title, description }) {
+interface EmptyStateProps {
+  title: string;
+  description: string;
+}
+
+function EmptyState({ title, description }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in-50">
       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
