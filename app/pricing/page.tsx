@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CheckIcon } from "lucide-react";
-import { useStripeCheckout } from "@/hooks/use-stripe-checkout";
+import Link from "next/link";
 
 const tiers = [
   {
@@ -37,6 +37,7 @@ const tiers = [
       "Multiple profiles",
       "Video storage",
     ],
+    url: "https://buy.stripe.com/4gM7sL7y73np7Ix5Oa2wU3n"
   },
   {
     name: "Premium Annual",
@@ -49,29 +50,11 @@ const tiers = [
       "1-on-1 onboarding call",
       "Priority casting notifications",
     ],
+    url: "https://buy.stripe.com/aFa00jaKjbTV2odekG2wU3m"
   },
 ];
 
 export default function PricingPage() {
-  const { checkout, isLoading } = useStripeCheckout();
-
-  const handleSubscribe = async (tier: typeof tiers[0]) => {
-    if (tier.price === 0) {
-      // Handle free tier signup
-      return;
-    }
-
-    try {
-      await checkout({
-        price: tier.price,
-        name: tier.name,
-        description: `${tier.name} Subscription`,
-      });
-    } catch (error) {
-      console.error("Checkout error:", error);
-    }
-  };
-
   return (
     <div className="flex-1 space-y-8 p-4 pt-6 md:p-8">
       <div className="text-center">
@@ -109,22 +92,21 @@ export default function PricingPage() {
             <CardFooter>
               <Button
                 className="w-full"
-                onClick={() => handleSubscribe(tier)}
-                disabled={isLoading}
+                asChild={tier.price > 0}
               >
-                {tier.price === 0 ? "Get Started" : "Subscribe"}
+                {tier.price > 0 ? (
+                  <a href={tier.url} target="_blank" rel="noopener noreferrer">
+                    Subscribe Now
+                  </a>
+                ) : (
+                  <Link href="/sign-up">
+                    Get Started
+                  </Link>
+                )}
               </Button>
             </CardFooter>
           </Card>
         ))}
-      </div>
-
-      <div className="mx-auto max-w-2xl text-center">
-        <h3 className="text-lg font-semibold">Money Back Guarantee</h3>
-        <p className="mt-2 text-muted-foreground">
-          Try any paid plan risk-free for 30 days. If you're not completely satisfied,
-          we'll refund your payment. No questions asked.
-        </p>
       </div>
     </div>
   );

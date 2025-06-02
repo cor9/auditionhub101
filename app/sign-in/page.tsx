@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,10 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FilmIcon } from "lucide-react";
+import { FilmIcon, Loader2 } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,16 +30,22 @@ export default function SignInPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const email = formData.get("email");
-      const password = formData.get("password");
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
 
-      // TODO: Implement actual authentication
-      console.log("Sign in attempt:", { email, password });
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-      // Simulate successful login
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1000);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      router.push(callbackUrl);
+      router.refresh();
     } catch (error) {
       toast({
         title: "Error",
@@ -71,6 +79,7 @@ export default function SignInPage() {
                 type="email"
                 placeholder="name@example.com"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -80,6 +89,7 @@ export default function SignInPage() {
                 name="password"
                 type="password"
                 required
+                disabled={isLoading}
               />
             </div>
           </CardContent>
@@ -89,7 +99,14 @@ export default function SignInPage() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign in"
+              )}
             </Button>
             <div className="text-center text-sm">
               <Link
