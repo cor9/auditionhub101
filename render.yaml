@@ -1,14 +1,30 @@
 services:
   - type: web
     name: audition-hub-101
-    env: static
+    env: node
+    plan: free
     buildCommand: npm install && npm run build
-    staticPublishPath: ./out
+    startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_APP_URL
+        fromGroup: production-settings
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        fromGroup: stripe-config
+      - key: STRIPE_SECRET_KEY
+        fromGroup: stripe-config
+    autoDeploy: true
+    branch: main
+
+envVarGroups:
+  - name: production-settings
+    envVars:
+      - key: NEXT_PUBLIC_APP_URL
         value: https://audition-hub-101.onrender.com
+        
+  - name: stripe-config
+    envVars:
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         sync: false
       - key: STRIPE_SECRET_KEY
