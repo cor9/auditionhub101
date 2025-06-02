@@ -1,3 +1,4 @@
+// package.json
 {
   "name": "nextjs",
   "version": "0.1.0",
@@ -5,9 +6,10 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
-    "start": "npx serve@latest out",
+    "start": "next start",         // <--- CORRECTED SCRIPT
     "lint": "next lint"
   },
+}
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "13.5.1",
