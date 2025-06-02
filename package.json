@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@airtable/blocks": "^1.8.0",
     "@google-cloud/local-auth": "^2.1.0",
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "13.5.1",
