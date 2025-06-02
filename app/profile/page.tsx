@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,12 +22,36 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { UserCircle, Mail, Phone, MapPin, Clock, Upload } from "lucide-react";
+import { useUploadThing } from "@/lib/uploadthing";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { startUpload } = useUploadThing("imageUploader");
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+
+    try {
+      const [res] = await startUpload([e.target.files[0]]);
+      if (res) {
+        setProfileImage(res.url);
+        toast({
+          title: "Success",
+          description: "Profile image uploaded successfully.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,8 +59,9 @@ export default function ProfilePage() {
 
     try {
       const formData = new FormData(e.currentTarget);
+      formData.append("profileImage", profileImage || "");
       
-      // TODO: Implement actual profile update
+      // TODO: Implement actual profile update with database
       console.log("Profile update:", Object.fromEntries(formData));
 
       toast({
@@ -85,6 +111,42 @@ export default function ProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="profileImage">Profile Image</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-20 w-20 overflow-hidden rounded-full border">
+                        {profileImage ? (
+                          <Image
+                            src={profileImage}
+                            alt="Profile"
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-muted">
+                            <UserCircle className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <Input
+                          id="profileImage"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById("profileImage")?.click()}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Image
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="parentName">Full Name</Label>
                     <Input
