@@ -21,32 +21,58 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, ChevronLeftIcon } from "lucide-react";
+import { CalendarIcon, ChevronLeftIcon, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { useToast } from "@/hooks/use-toast";
 import type { AuditionType } from "@/types";
 
 export default function NewAuditionPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [date, setDate] = useState<Date>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    // TODO: Implement actual form submission
-    console.log({
-      projectTitle: formData.get("projectTitle"),
-      roleName: formData.get("roleName"),
-      type: formData.get("type"),
-      castingCompany: formData.get("castingCompany"),
-      castingDirector: formData.get("castingDirector"),
-      location: formData.get("location"),
-      date: date,
-      notes: formData.get("notes"),
-    });
+    setIsSubmitting(true);
 
-    // Redirect back to auditions page after submission
-    router.push("/auditions");
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // TODO: Implement actual form submission with file URLs
+      console.log({
+        projectTitle: formData.get("projectTitle"),
+        roleName: formData.get("roleName"),
+        type: formData.get("type"),
+        castingCompany: formData.get("castingCompany"),
+        castingDirector: formData.get("castingDirector"),
+        location: formData.get("location"),
+        date: date,
+        notes: formData.get("notes"),
+        files: uploadedFiles,
+      });
+
+      toast({
+        title: "Success",
+        description: "Audition created successfully!",
+      });
+
+      router.push("/auditions");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create audition. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeFile = (fileUrl: string) => {
+    setUploadedFiles(files => files.filter(f => f.url !== fileUrl));
   };
 
   return (
@@ -160,6 +186,57 @@ export default function NewAuditionPage() {
                 </Popover>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label>Upload Materials</Label>
+              <UploadDropzone
+                endpoint="auditionMaterial"
+                onClientUploadComplete={(res) => {
+                  if (res) {
+                    const newFiles = res.map(file => ({
+                      url: file.url,
+                      name: file.name
+                    }));
+                    setUploadedFiles(prev => [...prev, ...newFiles]);
+                    toast({
+                      title: "Upload complete",
+                      description: "Files uploaded successfully!",
+                    });
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  toast({
+                    title: "Upload failed",
+                    description: error.message,
+                    variant: "destructive",
+                  });
+                }}
+              />
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <Label>Uploaded Files</Label>
+                  <div className="grid gap-2">
+                    {uploadedFiles.map((file) => (
+                      <div
+                        key={file.url}
+                        className="flex items-center justify-between rounded-md border p-2"
+                      >
+                        <span className="truncate text-sm">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(file.url)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
@@ -170,10 +247,24 @@ export default function NewAuditionPage() {
               />
             </div>
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit">Create Audition</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Audition"
+                )}
+              </Button>
             </div>
           </form>
         </CardContent>
