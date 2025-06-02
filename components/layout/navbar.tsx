@@ -10,12 +10,12 @@ import {
   Home,
   LogIn,
   Menu,
+  Receipt,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-// Only include routes that are actually implemented
 const routes = [
   {
     label: "Home",
@@ -36,10 +36,16 @@ const routes = [
     color: "text-pink-700",
   },
   {
+    label: "Expenses",
+    icon: Receipt,
+    href: "/expenses",
+    color: "text-emerald-500",
+  },
+  {
     label: "Services",
     icon: FilmIcon,
     href: "/services",
-    color: "text-emerald-500",
+    color: "text-orange-500",
   },
 ];
 
