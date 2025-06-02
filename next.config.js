@@ -16,9 +16,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Disable webpack caching to prevent ENOENT errors
+  // Completely disable webpack caching
   webpack: (config) => {
     config.cache = false;
+    // Ensure the cache property is explicitly disabled
+    if (config.optimization) {
+      config.optimization.moduleIds = 'named';
+    }
     return config;
   },
 };
