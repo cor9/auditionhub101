@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Mail, Phone, MapPin, Clock, Upload, Loader2 } from "lucide-react";
+import { UserCircle, Mail, Phone, MapPin, Clock, Upload } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
 
 export default function ProfilePage() {
@@ -247,7 +247,7 @@ export default function ProfilePage() {
                       <Input
                         id="childHeight"
                         name="childHeight"
-                        placeholder="e.g., 4'2&quot;"
+                        placeholder="e.g., 4'2\""
                       />
                     </div>
                     <div className="space-y-2">
@@ -294,19 +294,11 @@ export default function ProfilePage() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>
