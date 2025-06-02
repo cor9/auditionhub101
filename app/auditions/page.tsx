@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 // Define types locally until Prisma is set up
 type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
@@ -167,9 +168,11 @@ export default function AuditionsPage() {
             Manage all your child's auditions in one place
           </p>
         </div>
-        <Button>
-          <PlusIcon className="mr-2 h-4 w-4" />
-          New Audition
+        <Button asChild>
+          <Link href="/auditions/new">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            New Audition
+          </Link>
         </Button>
       </div>
 
@@ -401,9 +404,11 @@ function EmptyState({ title, description }: EmptyStateProps) {
       <p className="mb-4 mt-2 text-sm text-muted-foreground">
         {description}
       </p>
-      <Button>
-        <PlusIcon className="mr-2 h-4 w-4" />
-        Add Audition
+      <Button asChild>
+        <Link href="/auditions/new">
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Add Audition
+        </Link>
       </Button>
     </div>
   );
