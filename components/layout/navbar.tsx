@@ -126,9 +126,11 @@ export default function Navbar() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Button variant="outline" className="hidden md:flex">
-              Sign In
-              <LogIn className="ml-2 h-4 w-4" />
+            <Button variant="outline" className="hidden md:flex" asChild>
+              <Link href="/sign-in">
+                Sign In
+                <LogIn className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
           <ModeToggle />
