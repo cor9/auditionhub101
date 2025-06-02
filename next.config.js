@@ -16,6 +16,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Disable webpack caching to prevent ENOENT errors
+  webpack: (config) => {
+    config.cache = false;
+    return config;
+  },
 };
 
 module.exports = nextConfig;
