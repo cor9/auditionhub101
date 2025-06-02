@@ -11,6 +11,7 @@ import {
   LogIn,
   Menu,
   Receipt,
+  UserCircle,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -126,12 +127,20 @@ export default function Navbar() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Button variant="outline" className="hidden md:flex" asChild>
-              <Link href="/sign-in">
-                Sign In
-                <LogIn className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" className="hidden md:flex" asChild>
+                <Link href="/profile">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </Button>
+              <Button variant="outline" className="hidden md:flex" asChild>
+                <Link href="/sign-in">
+                  Sign In
+                  <LogIn className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
           <ModeToggle />
         </div>
