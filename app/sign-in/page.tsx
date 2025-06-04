@@ -46,6 +46,11 @@ export default function SignInPage() {
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
       router.push(callbackUrl);
       router.refresh();
+
+      toast({
+        title: "Success",
+        description: "Successfully signed in!",
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -80,6 +85,7 @@ export default function SignInPage() {
                 placeholder="name@example.com"
                 required
                 disabled={isLoading}
+                defaultValue="demo@example.com"
               />
             </div>
             <div className="space-y-2">
@@ -90,6 +96,7 @@ export default function SignInPage() {
                 type="password"
                 required
                 disabled={isLoading}
+                defaultValue="password"
               />
             </div>
           </CardContent>
