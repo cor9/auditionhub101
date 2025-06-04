@@ -58,19 +58,13 @@ export default function ProfilePage() {
         variant: "destructive",
       });
       console.error("Profile update error:", error);
-    } finally {
+} finally {
       setIsLoading(false);
     }
-  };
-  
+  };  // This closes the handleSubmit function
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Profile Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your account and child actor information
-        </p>
-      </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
