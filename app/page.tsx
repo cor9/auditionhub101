@@ -55,7 +55,7 @@ export default function Home() {
                   size="lg"
                   className="bg-background"
                 >
-                  <Link href="/about">Learn more</Link>
+                  <Link href="/features">Learn more</Link>
                 </Button>
               </div>
             </div>
