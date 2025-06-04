@@ -61,7 +61,7 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }; 
+  };
   
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                       <Input
                         id="childHeight"
                         name="childHeight"
-                        placeholder="e.g., 4'2\""
+                        placeholder='e.g., 4\'2"'
                         disabled={isLoading}
                       />
                     </div>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="emailNotifications"
-                    name="emailNotifications" // Added name attribute
+                    name="emailNotifications"
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="emailNotifications">
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="smsNotifications"
-                    name="smsNotifications" // Added name attribute
+                    name="smsNotifications"
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="smsNotifications">
@@ -307,7 +307,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="marketingEmails"
-                    name="marketingEmails" // Added name attribute
+                    name="marketingEmails"
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="marketingEmails">
