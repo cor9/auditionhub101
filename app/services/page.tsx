@@ -74,13 +74,13 @@ const services = [
   {
     title: "Private Audition Coaching",
     description: "One-on-one Zoom coaching for competitive advantage in auditions.",
-    price: 85,
+    price: 45,
     features: [
       "Strategic choice development",
       "Confidence building",
       "Personalized attention",
       "Professional guidance",
-      "Zoom session"
+      "25 minute Zoom session"
     ],
     icon: MessageCircle,
     checkoutUrl: "https://buy.stripe.com/4gM7sLdWvbTVd2Rccy2wU3o",
