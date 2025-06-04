@@ -62,7 +62,7 @@ export default function Home() {
               <img
                 alt="Audition Management Dashboard"
                 className="aspect-video rounded-xl object-cover border shadow-xl"
-                src="/frontpage.jpeg"
+                src="app/frontpage.jpeg"
               />
             </div>
           </div>
