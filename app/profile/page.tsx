@@ -24,7 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCircle, Mail, Phone, MapPin, Clock } from "lucide-react";
 
 export default function ProfilePage() {
-  console.log("<<<<<< BUILDING PROFILE PAGE - VERSION: NEW_DEBUG_PUSH_001 - " + new Date().toISOString() + " >>>>>>");
+  // Diagnostic log to verify which version of the file is being built
+  console.log("<<<<<< BUILDING PROFILE PAGE - VERSION: CLEAN_COPY_PASTE_001 - " + new Date().toISOString() + " >>>>>>");
 
   const router = useRouter();
   const { toast } = useToast();
@@ -36,21 +37,33 @@ export default function ProfilePage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      console.log("Profile update:", Object.fromEntries(formData));
+      console.log("Profile update form data:", Object.fromEntries(formData));
+      // TODO: Implement actual profile update logic here (e.g., call Supabase or your backend)
+      
+      // Simulate API call delay for testing loader
+      await new Promise(resolve => setTimeout(resolve, 1500)); 
+
       toast({
-        title: "Success",
-        description: "Your profile has been updated.",
+        title: "Success (Simulated)",
+        description: "Your profile data has been logged. Update functionality pending.",
       });
     } catch (error) {
+      let errorMessage = "Failed to update profile. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      console.error("Profile update error:", error);
     } finally {
       setIsLoading(false);
     }
+  }; // This correctly closes the handleSubmit arrow function
 
+  // Ensure there are no other '};' before this return statement
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div>
@@ -273,6 +286,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="emailNotifications"
+                    name="emailNotifications" // Added name attribute
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="emailNotifications">
@@ -283,6 +297,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="smsNotifications"
+                    name="smsNotifications" // Added name attribute
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="smsNotifications">
@@ -293,6 +308,7 @@ export default function ProfilePage() {
                   <input
                     type="checkbox"
                     id="marketingEmails"
+                    name="marketingEmails" // Added name attribute
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="marketingEmails">
@@ -306,4 +322,4 @@ export default function ProfilePage() {
       </Tabs>
     </div>
   );
-}
+} // This is the correct, final closing brace for the ProfilePage function
