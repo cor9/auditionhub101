@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
+  BookOpen,
+  Camera,
+  Gamepad2,
+  MessageCircle,
+  Video,
   Calendar,
   FilmIcon,
   LineChart,
