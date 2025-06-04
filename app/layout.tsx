@@ -6,7 +6,11 @@ import { ThemeProvider } from '@/components/theme-provider';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', 'arial']
+})
 
 export const metadata: Metadata = {
   title: 'Audition Hub 101',
