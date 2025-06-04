@@ -83,7 +83,7 @@ const services = [
       "Zoom session"
     ],
     icon: MessageCircle,
-    checkoutUrl: "https://buy.stripe.com/14kbKpcCfevfeOIeXz",
+    checkoutUrl: "https://buy.stripe.com/4gM7sLdWvbTVd2Rccy2wU3o",
     color: "text-rose-500",
     gradientFrom: "from-rose-500/20",
     gradientTo: "to-rose-500/5"
