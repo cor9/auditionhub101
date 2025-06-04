@@ -61,9 +61,8 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }; // This correctly closes the handleSubmit arrow function
-
-  // Ensure there are no other '};' before this return statement
+  }; 
+  
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div>
@@ -322,4 +321,4 @@ export default function ProfilePage() {
       </Tabs>
     </div>
   );
-} // This is the correct, final closing brace for the ProfilePage function
+}
