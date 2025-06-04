@@ -11,7 +11,8 @@ import {
   LogIn,
   Menu,
   Receipt,
-  UserCircle,
+  Settings,
+  Calendar,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -37,16 +38,16 @@ const routes = [
     color: "text-pink-700",
   },
   {
+    label: "Calendar",
+    icon: Calendar,
+    href: "/calendar",
+    color: "text-orange-500",
+  },
+  {
     label: "Expenses",
     icon: Receipt,
     href: "/expenses",
     color: "text-emerald-500",
-  },
-  {
-    label: "Services",
-    icon: FilmIcon,
-    href: "/services",
-    color: "text-orange-500",
   },
 ];
 
@@ -61,7 +62,7 @@ export default function Navbar() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <FilmIcon className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block">
-              Audition Hub 101
+              Child Actor 101
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -94,15 +95,10 @@ export default function Navbar() {
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
             <SheetHeader>
-              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <Link
-                href="/"
-                className="flex items-center gap-x-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <SheetTitle className="flex items-center gap-x-2">
                 <FilmIcon className="h-6 w-6 text-primary" />
-                <span className="font-bold">Audition Hub 101</span>
-              </Link>
+                <span className="font-bold">Child Actor 101</span>
+              </SheetTitle>
             </SheetHeader>
             <div className="mt-8 flex flex-col gap-4">
               {routes.map((route) => (
@@ -129,9 +125,9 @@ export default function Navbar() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="flex items-center gap-2">
               <Button variant="outline" className="hidden md:flex" asChild>
-                <Link href="/profile">
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  Profile
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
                 </Link>
               </Button>
               <Button variant="outline" className="hidden md:flex" asChild>

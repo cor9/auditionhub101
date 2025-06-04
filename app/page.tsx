@@ -34,7 +34,7 @@ export default function Home() {
           <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
             <div className="flex flex-col justify-center space-y-4">
               <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm">
-                Simplified Audition Management
+                Child Actor 101
               </div>
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl">
                 Helping Child Actors{" "}
@@ -55,7 +55,7 @@ export default function Home() {
                   size="lg"
                   className="bg-background"
                 >
-                  <Link href="/features">Learn more</Link>
+                  <Link href="#features">Learn more</Link>
                 </Button>
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function Home() {
                 Ready to Elevate Your Child's Acting Career?
               </h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Join Audition Hub 101 today and take the first step towards more
+                Join Child Actor 101 today and take the first step towards more
                 organized and successful auditions.
               </p>
             </div>

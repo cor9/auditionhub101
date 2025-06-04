@@ -8,8 +8,7 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
           <FilmIcon className="h-5 w-5 text-primary" />
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} Audition Hub 101. All rights
-            reserved.
+            Simplified Audition Management by Child Actor 101
           </p>
         </div>
         <div className="flex gap-4">
