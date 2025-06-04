@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -59,10 +60,13 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <img
+              <Image
                 alt="Audition Management Dashboard"
                 className="aspect-video rounded-xl object-cover border shadow-xl"
-                src="public/frontpage.webp"
+                src="/frontpage.webp"
+                width={600}
+                height={337}
+                priority
               />
             </div>
           </div>
