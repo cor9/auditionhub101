@@ -19,28 +19,46 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  // Child actor details
-  childName           String?
-  childAge            Int?
-  childGender         String?
-  childEthnicity      String?
-  childHeight         String?
-  childWeight         String?
-  childHairColor      String?
-  childEyeColor       String?
-  parentName          String?
-  phone               String?
-  location            String?
-  timezone            String?
+  // Parent/Guardian details
+  parentName    String?
+  phone         String?
+  location      String?
+  timezone      String?
   
   // Relationships
-  auditions      Audition[]
-  contacts       Contact[]
-  expenses       Expense[]
-  insights       Insight[]
-  bookings       Booking[]
-  subscriptions  Subscription[]
-  emailLogs      EmailLog[]
+  actors        Actor[]
+  auditions     Audition[]
+  contacts      Contact[]
+  expenses      Expense[]
+  insights      Insight[]
+  bookings      Booking[]
+  subscriptions Subscription[]
+  emailLogs     EmailLog[]
+}
+
+// Actor model for managing multiple child actors
+model Actor {
+  id            String    @id @default(cuid())
+  name          String
+  age           Int
+  gender        String?
+  ethnicity     String?
+  height        String?
+  weight        String?
+  hairColor     String?
+  eyeColor      String?
+  bio           String?
+  headshot      String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relationships
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditions     Audition[]
+  
+  @@index([userId])
 }
 
 // Audition types enum
@@ -96,10 +114,13 @@ model Audition {
   // Relationships
   userId          String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actorId         String
+  actor           Actor     @relation(fields: [actorId], references: [id], onDelete: Cascade)
   expenses        Expense[]
   contacts        AuditionContact[]
   
   @@index([userId])
+  @@index([actorId])
   @@index([status])
   @@index([auditionDate])
 }

@@ -16,18 +16,28 @@ export interface UserProfile {
   email: string;
   name?: string;
   image?: string;
-  childName?: string;
-  childAge?: number;
-  childGender?: string;
-  childEthnicity?: string;
-  childHeight?: string;
-  childWeight?: string;
-  childHairColor?: string;
-  childEyeColor?: string;
   parentName?: string;
   phone?: string;
   location?: string;
   timezone?: string;
+}
+
+// Actor type definitions
+export interface ActorProfile {
+  id: string;
+  name: string;
+  age: number;
+  gender?: string;
+  ethnicity?: string;
+  height?: string;
+  weight?: string;
+  hairColor?: string;
+  eyeColor?: string;
+  bio?: string;
+  headshot?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Audition type definitions
