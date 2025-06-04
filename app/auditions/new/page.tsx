@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,24 +15,46 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, ChevronLeftIcon, Loader2, X } from "lucide-react";
+import { CalendarIcon, ChevronLeftIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UploadDropzone } from "@/lib/uploadthing";
 import { useToast } from "@/hooks/use-toast";
-import type { AuditionType } from "@/types";
+import type { ActorProfile } from "@/types";
+
+// Mock data for demonstration
+const mockActors: ActorProfile[] = [
+  {
+    id: "1",
+    name: "Sarah Johnson",
+    age: 12,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    name: "Michael Chen",
+    age: 8,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 export default function NewAuditionPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
+  const [submitDate, setSubmitDate] = useState<Date>();
+  const [isInPerson, setIsInPerson] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
+  const [actors, setActors] = useState<ActorProfile[]>(mockActors);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,18 +63,25 @@ export default function NewAuditionPage() {
     try {
       const formData = new FormData(e.currentTarget);
       
-      // TODO: Implement actual form submission with file URLs
-      console.log({
+      const auditionData = {
+        actorId: formData.get("actor"),
         projectTitle: formData.get("projectTitle"),
         roleName: formData.get("roleName"),
+        roleSize: formData.get("roleSize"),
         type: formData.get("type"),
-        castingCompany: formData.get("castingCompany"),
         castingDirector: formData.get("castingDirector"),
-        location: formData.get("location"),
-        date: date,
+        isInPerson,
+        location: isInPerson ? formData.get("location") : null,
+        auditionDate: date,
+        source: formData.get("source"),
+        union: formData.get("union"),
+        breakdown: formData.get("breakdown"),
+        dateSubmitted: submitDate,
         notes: formData.get("notes"),
-        files: uploadedFiles,
-      });
+      };
+
+      // TODO: Implement API call
+      console.log(auditionData);
 
       toast({
         title: "Success",
@@ -69,10 +98,6 @@ export default function NewAuditionPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const removeFile = (fileUrl: string) => {
-    setUploadedFiles(files => files.filter(f => f.url !== fileUrl));
   };
 
   return (
@@ -103,6 +128,22 @@ export default function NewAuditionPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
+                <Label htmlFor="actor">Actor</Label>
+                <Select name="actor" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select actor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {actors.map((actor) => (
+                      <SelectItem key={actor.id} value={actor.id}>
+                        {actor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="projectTitle">Project Title</Label>
                 <Input
                   id="projectTitle"
@@ -111,6 +152,7 @@ export default function NewAuditionPage() {
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="roleName">Role Name</Label>
                 <Input
@@ -120,8 +162,30 @@ export default function NewAuditionPage() {
                   required
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="roleSize">Role Size</Label>
+                <Select name="roleSize" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PRINCIPAL">Principal</SelectItem>
+                    <SelectItem value="SUPPORTING">Supporting</SelectItem>
+                    <SelectItem value="LEAD">Lead</SelectItem>
+                    <SelectItem value="SERIES_REGULAR">Series Regular</SelectItem>
+                    <SelectItem value="FRACTIONAL_SERIES_REGULAR">Fractional Series Regular</SelectItem>
+                    <SelectItem value="RECURRING_GUEST_STAR">Recurring Guest Star</SelectItem>
+                    <SelectItem value="GUEST_STAR">Guest Star</SelectItem>
+                    <SelectItem value="RECURRING_COSTAR">Recurring Co-Star</SelectItem>
+                    <SelectItem value="COSTAR">Co-Star</SelectItem>
+                    <SelectItem value="CONTRACT">Contract</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Project Type</Label>
                 <Select name="type" required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -136,30 +200,40 @@ export default function NewAuditionPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="castingCompany">Casting Company</Label>
-                <Input
-                  id="castingCompany"
-                  name="castingCompany"
-                  placeholder="Enter casting company"
-                />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="castingDirector">Casting Director</Label>
                 <Input
                   id="castingDirector"
                   name="castingDirector"
                   placeholder="Enter casting director"
+                  required
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  name="location"
-                  placeholder="Enter location or virtual link"
-                />
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isInPerson"
+                    checked={isInPerson}
+                    onCheckedChange={(checked) => setIsInPerson(checked as boolean)}
+                  />
+                  <Label htmlFor="isInPerson">In-Person Audition</Label>
+                </div>
               </div>
+
+              {isInPerson && (
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    placeholder="Enter location"
+                    required={isInPerson}
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Audition Date</Label>
                 <Popover>
@@ -185,56 +259,72 @@ export default function NewAuditionPage() {
                   </PopoverContent>
                 </Popover>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="source">Source</Label>
+                <Select name="source" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AGENCY">Agency</SelectItem>
+                    <SelectItem value="MANAGEMENT">Management</SelectItem>
+                    <SelectItem value="SELF_SUBMIT">Self Submit</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="union">Union Status</Label>
+                <Select name="union" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select union status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NON_UNION">Non-Union</SelectItem>
+                    <SelectItem value="SAG_AFTRA">SAG/AFTRA</SelectItem>
+                    <SelectItem value="AEA">AEA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Date Submitted</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !submitDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {submitDate ? format(submitDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={submitDate}
+                      onSelect={setSubmitDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Upload Materials</Label>
-              <UploadDropzone
-                endpoint="auditionMaterial"
-                onClientUploadComplete={(res) => {
-                  if (res) {
-                    const newFiles = res.map(file => ({
-                      url: file.url,
-                      name: file.name
-                    }));
-                    setUploadedFiles(prev => [...prev, ...newFiles]);
-                    toast({
-                      title: "Upload complete",
-                      description: "Files uploaded successfully!",
-                    });
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  toast({
-                    title: "Upload failed",
-                    description: error.message,
-                    variant: "destructive",
-                  });
-                }}
+              <Label htmlFor="breakdown">Breakdown</Label>
+              <Textarea
+                id="breakdown"
+                name="breakdown"
+                placeholder="Enter role breakdown"
+                className="min-h-[100px]"
+                required
               />
-              {uploadedFiles.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <Label>Uploaded Files</Label>
-                  <div className="grid gap-2">
-                    {uploadedFiles.map((file) => (
-                      <div
-                        key={file.url}
-                        className="flex items-center justify-between rounded-md border p-2"
-                      >
-                        <span className="truncate text-sm">{file.name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(file.url)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -242,10 +332,11 @@ export default function NewAuditionPage() {
               <Textarea
                 id="notes"
                 name="notes"
-                placeholder="Add any additional notes or instructions"
+                placeholder="Add any additional notes"
                 className="min-h-[100px]"
               />
             </div>
+
             <div className="flex justify-end gap-4">
               <Button
                 type="button"

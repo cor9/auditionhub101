@@ -1,6 +1,9 @@
 // Enums
 export type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
 export type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
+export type RoleSize = 'PRINCIPAL' | 'SUPPORTING' | 'LEAD' | 'SERIES_REGULAR' | 'FRACTIONAL_SERIES_REGULAR' | 'RECURRING_GUEST_STAR' | 'GUEST_STAR' | 'RECURRING_COSTAR' | 'COSTAR' | 'CONTRACT';
+export type AuditionSource = 'AGENCY' | 'MANAGEMENT' | 'SELF_SUBMIT' | 'OTHER';
+export type UnionStatus = 'NON_UNION' | 'SAG_AFTRA' | 'AEA';
 export type ContactType = 'CASTING_DIRECTOR' | 'AGENT' | 'MANAGER' | 'COACH' | 'OTHER';
 export type ExpenseCategory = 'COACHING' | 'SELF_TAPE_GEAR' | 'TRAVEL' | 'WARDROBE' | 'HEADSHOTS' | 'MEMBERSHIPS' | 'OTHER';
 export type InsightType = 'PERFORMANCE' | 'CASTING_TRENDS' | 'CALLBACKS_ANALYSIS' | 'GENERAL_TIPS';
@@ -43,25 +46,21 @@ export interface ActorProfile {
 // Audition type definitions
 export interface AuditionData {
   id: string;
+  actorId: string;
   projectTitle: string;
   roleName: string;
+  roleSize: RoleSize;
   type: AuditionType;
   status: AuditionStatus;
-  description?: string;
-  auditionDate?: Date;
-  callbackDate?: Date;
+  castingDirector: string;
+  isInPerson: boolean;
   location?: string;
-  virtualLink?: string;
+  auditionDate: Date;
+  source: AuditionSource;
+  union: UnionStatus;
+  breakdown: string;
+  dateSubmitted: Date;
   notes?: string;
-  sides?: string;
-  selftapeUrl?: string;
-  castingCompany?: string;
-  castingDirector?: string;
-  castingAssistant?: string;
-  castingEmail?: string;
-  castingPhone?: string;
-  submittedBy?: string;
-  submittedDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
