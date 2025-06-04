@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { NextRequest } from "next/server";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -32,6 +31,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {
@@ -48,11 +48,5 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-// Create GET and POST handlers that properly pass the request context
-export async function GET(req: NextRequest) {
-  return await NextAuth(authOptions)(req);
-}
-
-export async function POST(req: NextRequest) {
-  return await NextAuth(authOptions)(req);
-}
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
