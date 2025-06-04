@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export default function Navbar() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <FilmIcon className="h-6 w-6 text-primary" />
+            <Image src="/101logo.png" alt="Child Actor 101" width={32} height={32} className="h-8 w-auto" />
             <span className="hidden font-bold sm:inline-block">
               Child Actor 101
             </span>
@@ -96,7 +97,7 @@ export default function Navbar() {
           <SheetContent side="left" className="pr-0">
             <SheetHeader>
               <SheetTitle className="flex items-center gap-x-2">
-                <FilmIcon className="h-6 w-6 text-primary" />
+                <Image src="/101logo.png" alt="Child Actor 101" width={24} height={24} className="h-6 w-auto" />
                 <span className="font-bold">Child Actor 101</span>
               </SheetTitle>
             </SheetHeader>
