@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,27 @@ import { format } from "date-fns";
 import { CalendarIcon, ChevronLeftIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
 import type { ActorProfile } from "@/types";
+
+// Mock data for demonstration
+const mockActors: ActorProfile[] = [
+  {
+    id: "1",
+    name: "Sarah Johnson",
+    age: 12,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    name: "Michael Chen",
+    age: 8,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 export default function NewAuditionPage() {
   const router = useRouter();
@@ -33,29 +54,7 @@ export default function NewAuditionPage() {
   const [submitDate, setSubmitDate] = useState<Date>();
   const [isInPerson, setIsInPerson] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [actors, setActors] = useState<ActorProfile[]>([]);
-
-  useEffect(() => {
-    async function fetchActors() {
-      const { data, error } = await supabase
-        .from('actors')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load actors",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setActors(data);
-    }
-
-    fetchActors();
-  }, [toast]);
+  const [actors, setActors] = useState<ActorProfile[]>(mockActors);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,32 +63,25 @@ export default function NewAuditionPage() {
     try {
       const formData = new FormData(e.currentTarget);
       
-      if (!date || !submitDate) {
-        throw new Error("Please select both audition date and submission date");
-      }
-
       const auditionData = {
-        actor_id: formData.get("actor"),
-        project_title: formData.get("projectTitle"),
-        role_name: formData.get("roleName"),
-        role_size: formData.get("roleSize"),
+        actorId: formData.get("actor"),
+        projectTitle: formData.get("projectTitle"),
+        roleName: formData.get("roleName"),
+        roleSize: formData.get("roleSize"),
         type: formData.get("type"),
-        casting_director: formData.get("castingDirector"),
-        is_in_person: isInPerson,
+        castingDirector: formData.get("castingDirector"),
+        isInPerson,
         location: isInPerson ? formData.get("location") : null,
-        audition_date: date.toISOString(),
+        auditionDate: date,
         source: formData.get("source"),
         union: formData.get("union"),
         breakdown: formData.get("breakdown"),
-        date_submitted: submitDate.toISOString(),
+        dateSubmitted: submitDate,
         notes: formData.get("notes"),
       };
 
-      const { error } = await supabase
-        .from('auditions')
-        .insert(auditionData);
-
-      if (error) throw error;
+      // TODO: Implement API call
+      console.log(auditionData);
 
       toast({
         title: "Success",
@@ -98,10 +90,9 @@ export default function NewAuditionPage() {
 
       router.push("/auditions");
     } catch (error) {
-      console.error("Error creating audition:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create audition. Please try again.",
+        description: "Failed to create audition. Please try again.",
         variant: "destructive",
       });
     } finally {
