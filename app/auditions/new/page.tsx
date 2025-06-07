@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -41,8 +40,6 @@ export default function NewAuditionPage() {
   const { user } = useSession();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
-  const [submitDate, setSubmitDate] = useState<Date>();
-  const [isInPerson, setIsInPerson] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actors, setActors] = useState<ActorProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,16 +85,16 @@ export default function NewAuditionPage() {
         actor_id: formData.get("actor"),
         project_title: formData.get("projectTitle"),
         role_name: formData.get("roleName"),
-        role_size: formData.get("roleSize"),
+        role_size: formData.get("roleSize") || "COSTAR",
         type: formData.get("type"),
         casting_director: formData.get("castingDirector"),
-        is_in_person: isInPerson,
-        location: isInPerson ? formData.get("location") : null,
+        is_in_person: formData.get("location") ? true : false,
+        location: formData.get("location") || "Virtual",
         audition_date: date?.toISOString(),
-        source: formData.get("source"),
-        union: formData.get("union"),
+        source: formData.get("source") || "SELF_SUBMIT",
+        union: formData.get("union") || "NON_UNION",
         breakdown: formData.get("breakdown"),
-        date_submitted: submitDate?.toISOString(),
+        date_submitted: new Date().toISOString(),
         notes: formData.get("notes"),
         status: 'PENDING',
       };
@@ -189,15 +186,16 @@ export default function NewAuditionPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>Audition Details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+            {/* Essential Fields Only */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="actor">Actor</Label>
+                <Label htmlFor="actor">Which Actor? *</Label>
                 <Select name="actor" required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select actor" />
@@ -205,7 +203,7 @@ export default function NewAuditionPage() {
                   <SelectContent>
                     {actors.map((actor) => (
                       <SelectItem key={actor.id} value={actor.id}>
-                        {actor.name}
+                        {actor.name} (Age {actor.age})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -213,200 +211,112 @@ export default function NewAuditionPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="projectTitle">Project Title</Label>
+                <Label htmlFor="projectTitle">Project Title *</Label>
                 <Input
                   id="projectTitle"
                   name="projectTitle"
-                  placeholder="Enter project title"
+                  placeholder="e.g., Disney Channel Series"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="roleName">Role Name</Label>
+                <Label htmlFor="roleName">Role Name *</Label>
                 <Input
                   id="roleName"
                   name="roleName"
-                  placeholder="Enter role name"
+                  placeholder="e.g., Lead Child Role"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="roleSize">Role Size</Label>
-                <Select name="roleSize" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PRINCIPAL">Principal</SelectItem>
-                    <SelectItem value="SUPPORTING">Supporting</SelectItem>
-                    <SelectItem value="LEAD">Lead</SelectItem>
-                    <SelectItem value="SERIES_REGULAR">Series Regular</SelectItem>
-                    <SelectItem value="FRACTIONAL_SERIES_REGULAR">Fractional Series Regular</SelectItem>
-                    <SelectItem value="RECURRING_GUEST_STAR">Recurring Guest Star</SelectItem>
-                    <SelectItem value="GUEST_STAR">Guest Star</SelectItem>
-                    <SelectItem value="RECURRING_COSTAR">Recurring Co-Star</SelectItem>
-                    <SelectItem value="COSTAR">Co-Star</SelectItem>
-                    <SelectItem value="CONTRACT">Contract</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="type">Project Type *</Label>
+                  <Select name="type" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TV">TV</SelectItem>
+                      <SelectItem value="FILM">Film</SelectItem>
+                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
+                      <SelectItem value="THEATRE">Theatre</SelectItem>
+                      <SelectItem value="VOICEOVER">Voiceover</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Audition Date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Project Type</Label>
-                <Select name="type" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TV">TV</SelectItem>
-                    <SelectItem value="FILM">Film</SelectItem>
-                    <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                    <SelectItem value="THEATRE">Theatre</SelectItem>
-                    <SelectItem value="VOICEOVER">Voiceover</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="castingDirector">Casting Director</Label>
+                <Label htmlFor="castingDirector">Casting Director *</Label>
                 <Input
                   id="castingDirector"
                   name="castingDirector"
-                  placeholder="Enter casting director"
+                  placeholder="e.g., Sarah Johnson"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="isInPerson"
-                    checked={isInPerson}
-                    onCheckedChange={(checked) => setIsInPerson(checked as boolean)}
-                  />
-                  <Label htmlFor="isInPerson">In-Person Audition</Label>
-                </div>
-              </div>
-
-              {isInPerson && (
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    placeholder="Enter location"
-                    required={isInPerson}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Audition Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  placeholder="Leave blank for virtual auditions"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="source">Source</Label>
-                <Select name="source" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="AGENCY">Agency</SelectItem>
-                    <SelectItem value="MANAGEMENT">Management</SelectItem>
-                    <SelectItem value="SELF_SUBMIT">Self Submit</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="breakdown">Role Description *</Label>
+                <Textarea
+                  id="breakdown"
+                  name="breakdown"
+                  placeholder="Describe the role and what they're looking for..."
+                  className="min-h-[100px]"
+                  required
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="union">Union Status</Label>
-                <Select name="union" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select union status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NON_UNION">Non-Union</SelectItem>
-                    <SelectItem value="SAG_AFTRA">SAG/AFTRA</SelectItem>
-                    <SelectItem value="AEA">AEA</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Date Submitted</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !submitDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {submitDate ? format(submitDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={submitDate}
-                      onSelect={setSubmitDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  name="notes"
+                  placeholder="Any other important details..."
+                  className="min-h-[80px]"
+                />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="breakdown">Breakdown</Label>
-              <Textarea
-                id="breakdown"
-                name="breakdown"
-                placeholder="Enter role breakdown"
-                className="min-h-[100px]"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                placeholder="Add any additional notes"
-                className="min-h-[100px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -415,7 +325,7 @@ export default function NewAuditionPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || !date}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

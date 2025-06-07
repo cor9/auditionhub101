@@ -15,9 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, User } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UploadDropzone } from "@/lib/uploadthing";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/components/session-provider";
 import Link from "next/link";
@@ -82,13 +81,13 @@ export default function ActorsSettingsPage() {
     const actorData = {
       name: formData.get("name") as string,
       age: parseInt(formData.get("age") as string),
-      gender: formData.get("gender") as string,
-      ethnicity: formData.get("ethnicity") as string,
-      height: formData.get("height") as string,
-      weight: formData.get("weight") as string,
-      hair_color: formData.get("hairColor") as string,
-      eye_color: formData.get("eyeColor") as string,
-      bio: formData.get("bio") as string,
+      gender: formData.get("gender") as string || null,
+      ethnicity: formData.get("ethnicity") as string || null,
+      height: formData.get("height") as string || null,
+      weight: formData.get("weight") as string || null,
+      hair_color: formData.get("hairColor") as string || null,
+      eye_color: formData.get("eyeColor") as string || null,
+      bio: formData.get("bio") as string || null,
       user_id: user?.id,
     };
 
@@ -230,7 +229,7 @@ export default function ActorsSettingsPage() {
       {actors.length === 0 ? (
         <Card>
           <CardContent className="text-center py-8">
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+            <User className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold">No actors yet</h3>
             <p className="text-muted-foreground">Add your first actor to get started.</p>
             <Button onClick={() => setIsAddingNew(true)} className="mt-4">
@@ -276,7 +275,7 @@ export default function ActorsSettingsPage() {
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <Upload className="h-12 w-12 text-muted-foreground" />
+                      <User className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}
                 </div>
@@ -342,106 +341,63 @@ export default function ActorsSettingsPage() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Essential Fields Only */}
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name *</Label>
               <Input 
                 id="name" 
                 name="name" 
                 required 
                 defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.name : ""}
+                placeholder="Enter actor's name"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="age">Age *</Label>
+              <Input 
+                id="age" 
+                name="age" 
+                type="number" 
+                required 
+                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
+                placeholder="Enter age"
+              />
+            </div>
+
+            {/* Optional Fields */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input 
-                  id="age" 
-                  name="age" 
-                  type="number" 
-                  required 
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
                 <Input 
                   id="gender" 
                   name="gender" 
                   defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.gender : ""}
+                  placeholder="e.g., Female"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ethnicity">Ethnicity</Label>
-              <Input 
-                id="ethnicity" 
-                name="ethnicity" 
-                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.ethnicity : ""}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="height">Height</Label>
                 <Input 
                   id="height" 
                   name="height" 
                   defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.height : ""}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight</Label>
-                <Input 
-                  id="weight" 
-                  name="weight" 
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.weight : ""}
+                  placeholder="e.g., 4'11\""
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="hairColor">Hair Color</Label>
-                <Input 
-                  id="hairColor" 
-                  name="hairColor" 
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.hair_color : ""}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="eyeColor">Eye Color</Label>
-                <Input 
-                  id="eyeColor" 
-                  name="eyeColor" 
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.eye_color : ""}
-                />
-              </div>
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
               <Textarea 
                 id="bio" 
                 name="bio" 
                 defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.bio : ""}
+                placeholder="Brief description of the actor..."
+                className="min-h-[80px]"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Headshot</Label>
-              <UploadDropzone
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  toast({
-                    title: "Upload complete",
-                    description: "Headshot uploaded successfully",
-                  });
-                }}
-                onUploadError={(error: Error) => {
-                  toast({
-                    title: "Upload failed",
-                    description: error.message,
-                    variant: "destructive",
-                  });
-                }}
-              />
-            </div>
+
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
