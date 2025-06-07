@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/session-provider";
 import Link from "next/link";
 
 // Define types locally
@@ -58,7 +58,7 @@ interface UpcomingAudition {
 const COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"];
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { user } = useSession();
   const [activeTab, setActiveTab] = useState("overview");
   const [auditionsByStatus, setAuditionsByStatus] = useState<AuditionStatusCount[]>([]);
   const [auditionsByMonth, setAuditionsByMonth] = useState<AuditionMonthCount[]>([]);
@@ -72,10 +72,10 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (user?.id) {
       fetchDashboardData();
     }
-  }, [session]);
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
@@ -88,7 +88,7 @@ export default function DashboardPage() {
             name
           )
         `)
-        .eq('user_id', session?.user?.id);
+        .eq('user_id', user?.id);
 
       if (error) throw error;
 
@@ -146,7 +146,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="text-center">

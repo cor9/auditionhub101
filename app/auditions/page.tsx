@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/session-provider";
 
 // Define types locally
 type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
@@ -74,7 +74,7 @@ const statusIcons = {
 };
 
 export default function AuditionsPage() {
-  const { data: session } = useSession();
+  const { user } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<AuditionStatus | "ALL">("ALL");
   const [typeFilter, setTypeFilter] = useState<AuditionType | "ALL">("ALL");
@@ -83,10 +83,10 @@ export default function AuditionsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (user?.id) {
       fetchAuditions();
     }
-  }, [session]);
+  }, [user]);
 
   const fetchAuditions = async () => {
     try {
@@ -98,7 +98,7 @@ export default function AuditionsPage() {
             name
           )
         `)
-        .eq('user_id', session?.user?.id)
+        .eq('user_id', user?.id)
         .order('audition_date', { ascending: false });
 
       if (error) throw error;
@@ -136,7 +136,7 @@ export default function AuditionsPage() {
     return matchesSearch && matchesStatus && matchesType && matchesTab;
   });
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="text-center">

@@ -20,7 +20,7 @@ import {
 import { format } from "date-fns";
 import { CalendarIcon, MapPinIcon, Clock, Building2, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/session-provider";
 import Link from "next/link";
 
 interface AuditionData {
@@ -38,16 +38,16 @@ interface AuditionData {
 }
 
 export default function CalendarPage() {
-  const { data: session } = useSession();
+  const { user } = useSession();
   const [auditions, setAuditions] = useState<AuditionData[]>([]);
   const [selectedAudition, setSelectedAudition] = useState<AuditionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (user?.id) {
       fetchAuditions();
     }
-  }, [session]);
+  }, [user]);
 
   const fetchAuditions = async () => {
     try {
@@ -59,7 +59,7 @@ export default function CalendarPage() {
             name
           )
         `)
-        .eq('user_id', session?.user?.id)
+        .eq('user_id', user?.id)
         .order('audition_date', { ascending: true });
 
       if (error) throw error;
@@ -71,7 +71,7 @@ export default function CalendarPage() {
     }
   };
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="text-center">
