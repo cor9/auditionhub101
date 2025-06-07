@@ -10,14 +10,19 @@ import {
   FilmIcon,
   Home,
   LogIn,
+  LogOut,
   Menu,
   Receipt,
   Settings,
   Calendar,
+  User,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/components/session-provider";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 const routes = [
   {
@@ -31,30 +36,43 @@ const routes = [
     icon: BarChart3,
     href: "/dashboard",
     color: "text-violet-500",
+    requiresAuth: true,
   },
   {
     label: "Auditions",
     icon: FilmIcon,
     href: "/auditions",
     color: "text-pink-700",
+    requiresAuth: true,
   },
   {
     label: "Calendar",
     icon: Calendar,
     href: "/calendar",
     color: "text-orange-500",
+    requiresAuth: true,
   },
   {
     label: "Expenses",
     icon: Receipt,
     href: "/expenses",
     color: "text-emerald-500",
+    requiresAuth: true,
   },
 ];
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useSession();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  const visibleRoutes = routes.filter(route => !route.requiresAuth || user);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -67,7 +85,7 @@ export default function Navbar() {
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {routes.map((route) => (
+            {visibleRoutes.map((route) => (
               <Link
                 key={route.href}
                 href={route.href}
@@ -102,7 +120,7 @@ export default function Navbar() {
               </SheetTitle>
             </SheetHeader>
             <div className="mt-8 flex flex-col gap-4">
-              {routes.map((route) => (
+              {visibleRoutes.map((route) => (
                 <Link
                   key={route.href}
                   href={route.href}
@@ -125,18 +143,29 @@ export default function Navbar() {
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="hidden md:flex" asChild>
-                <Link href="/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </Button>
-              <Button variant="outline" className="hidden md:flex" asChild>
-                <Link href="/sign-in">
-                  Sign In
-                  <LogIn className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              {user && (
+                <Button variant="outline" className="hidden md:flex" asChild>
+                  <Link href="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </Button>
+              )}
+              {!loading && (
+                user ? (
+                  <Button variant="outline" onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button variant="outline" asChild>
+                    <Link href="/sign-in">
+                      Sign In
+                      <LogIn className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )
+              )}
             </div>
           </div>
           <ModeToggle />

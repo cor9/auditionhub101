@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { FilmIcon, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -33,14 +33,13 @@ export default function SignInPage() {
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      const result = await signIn("credentials", {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        throw new Error(result.error);
+      if (error) {
+        throw new Error(error.message);
       }
 
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -54,7 +53,7 @@ export default function SignInPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Invalid email or password. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to sign in. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -85,7 +84,6 @@ export default function SignInPage() {
                 placeholder="name@example.com"
                 required
                 disabled={isLoading}
-                defaultValue="demo@example.com"
               />
             </div>
             <div className="space-y-2">
@@ -96,7 +94,6 @@ export default function SignInPage() {
                 type="password"
                 required
                 disabled={isLoading}
-                defaultValue="password"
               />
             </div>
           </CardContent>

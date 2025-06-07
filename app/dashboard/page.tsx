@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,8 +26,11 @@ import {
   FilmIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
-// Define types locally until Prisma is set up
+// Define types locally
 type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
 
 interface AuditionStatusCount {
@@ -40,92 +43,146 @@ interface AuditionMonthCount {
   count: number;
 }
 
-interface ExpenseCategory {
-  name: string;
-  value: number;
-}
-
 interface UpcomingAudition {
   id: string;
-  projectTitle: string;
-  roleName: string;
-  auditionDate: Date;
-  castingDirector: string;
+  project_title: string;
+  role_name: string;
+  audition_date: string;
+  casting_director: string;
   location: string;
+  actor?: {
+    name: string;
+  };
 }
-
-// Mock data for demonstration
-const mockAuditionsByStatus: AuditionStatusCount[] = [
-  { status: "PENDING", count: 5 },
-  { status: "SUBMITTED", count: 12 },
-  { status: "CALLBACK", count: 3 },
-  { status: "BOOKED", count: 2 },
-  { status: "RELEASED", count: 8 },
-];
-
-const mockAuditionsByMonth: AuditionMonthCount[] = [
-  { name: "Jan", count: 4 },
-  { name: "Feb", count: 3 },
-  { name: "Mar", count: 5 },
-  { name: "Apr", count: 7 },
-  { name: "May", count: 2 },
-  { name: "Jun", count: 6 },
-  { name: "Jul", count: 8 },
-  { name: "Aug", count: 10 },
-  { name: "Sep", count: 12 },
-  { name: "Oct", count: 5 },
-  { name: "Nov", count: 7 },
-  { name: "Dec", count: 4 },
-];
-
-const mockExpensesByCategory: ExpenseCategory[] = [
-  { name: "Coaching", value: 1200 },
-  { name: "Self Tape", value: 800 },
-  { name: "Travel", value: 500 },
-  { name: "Wardrobe", value: 350 },
-  { name: "Headshots", value: 1000 },
-];
-
-const mockUpcomingAuditions: UpcomingAudition[] = [
-  {
-    id: "1",
-    projectTitle: "Disney Channel Series",
-    roleName: "Lead Child Role",
-    auditionDate: new Date("2025-07-15T14:30:00"),
-    castingDirector: "Sarah Johnson",
-    location: "Los Angeles, CA",
-  },
-  {
-    id: "2",
-    projectTitle: "Netflix Family Film",
-    roleName: "Supporting Role",
-    auditionDate: new Date("2025-07-18T10:00:00"),
-    castingDirector: "Michael Chen",
-    location: "Virtual",
-  },
-  {
-    id: "3",
-    projectTitle: "National Cereal Commercial",
-    roleName: "Energetic Kid",
-    auditionDate: new Date("2025-07-20T16:15:00"),
-    castingDirector: "Lisa Rodriguez",
-    location: "New York, NY",
-  },
-];
 
 const COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"];
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("overview");
+  const [auditionsByStatus, setAuditionsByStatus] = useState<AuditionStatusCount[]>([]);
+  const [auditionsByMonth, setAuditionsByMonth] = useState<AuditionMonthCount[]>([]);
+  const [upcomingAuditions, setUpcomingAuditions] = useState<UpcomingAudition[]>([]);
+  const [stats, setStats] = useState({
+    totalAuditions: 0,
+    callbacks: 0,
+    bookings: 0,
+    expenses: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchDashboardData();
+    }
+  }, [session]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch auditions
+      const { data: auditions, error } = await supabase
+        .from('auditions')
+        .select(`
+          *,
+          actors (
+            name
+          )
+        `)
+        .eq('user_id', session?.user?.id);
+
+      if (error) throw error;
+
+      // Calculate stats
+      const totalAuditions = auditions?.length || 0;
+      const callbacks = auditions?.filter(a => a.status === 'CALLBACK').length || 0;
+      const bookings = auditions?.filter(a => a.status === 'BOOKED').length || 0;
+
+      setStats({
+        totalAuditions,
+        callbacks,
+        bookings,
+        expenses: 0, // TODO: Implement expenses
+      });
+
+      // Group by status
+      const statusCounts = auditions?.reduce((acc, curr) => {
+        acc[curr.status] = (acc[curr.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+        status: status as AuditionStatus,
+        count,
+      }));
+
+      setAuditionsByStatus(statusData);
+
+      // Group by month
+      const monthCounts = auditions?.reduce((acc, curr) => {
+        const month = new Date(curr.audition_date).toLocaleDateString('en-US', { month: 'short' });
+        acc[month] = (acc[month] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const monthData = Object.entries(monthCounts).map(([name, count]) => ({
+        name,
+        count,
+      }));
+
+      setAuditionsByMonth(monthData);
+
+      // Get upcoming auditions
+      const upcoming = auditions?.filter(a => 
+        new Date(a.audition_date) > new Date() && 
+        ['PENDING', 'SUBMITTED', 'CALLBACK'].includes(a.status)
+      ).slice(0, 3) || [];
+
+      setUpcomingAuditions(upcoming);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!session) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to view your dashboard
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center space-x-2">
-          <Button>
-            <FilmIcon className="mr-2 h-4 w-4" />
-            New Audition
+          <Button asChild>
+            <Link href="/auditions/new">
+              <FilmIcon className="mr-2 h-4 w-4" />
+              New Audition
+            </Link>
           </Button>
         </div>
       </div>
@@ -145,7 +202,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatsCard
               title="Total Auditions"
-              value="30"
+              value={stats.totalAuditions.toString()}
               description="This year"
               icon={FilmIcon}
               trend="up"
@@ -153,7 +210,7 @@ export default function DashboardPage() {
             />
             <StatsCard
               title="Callbacks"
-              value="8"
+              value={stats.callbacks.toString()}
               description="This year"
               icon={ClipboardCheckIcon}
               trend="up"
@@ -161,7 +218,7 @@ export default function DashboardPage() {
             />
             <StatsCard
               title="Bookings"
-              value="5"
+              value={stats.bookings.toString()}
               description="This year"
               icon={CalendarIcon}
               trend="up"
@@ -169,11 +226,11 @@ export default function DashboardPage() {
             />
             <StatsCard
               title="Expenses"
-              value="$3,250"
+              value="$0"
               description="This year"
               icon={DollarSignIcon}
               trend="down"
-              trendValue="5%"
+              trendValue="0%"
             />
           </div>
 
@@ -184,7 +241,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={mockAuditionsByMonth}>
+                  <BarChart data={auditionsByMonth}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis allowDecimals={false} />
@@ -214,7 +271,7 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
                     <Pie
-                      data={mockAuditionsByStatus}
+                      data={auditionsByStatus}
                       dataKey="count"
                       nameKey="status"
                       cx="50%"
@@ -246,13 +303,13 @@ export default function DashboardPage() {
                             dominantBaseline="central"
                             fontSize={12}
                           >
-                            {mockAuditionsByStatus[index].status.substring(0, 3)}{" "}
+                            {auditionsByStatus[index]?.status.substring(0, 3)}{" "}
                             ({(percent * 100).toFixed(0)}%)
                           </text>
                         );
                       }}
                     >
-                      {mockAuditionsByStatus.map((entry, index) => (
+                      {auditionsByStatus.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={`hsl(var(--chart-${(index % 5) + 1}))`}
@@ -285,7 +342,7 @@ export default function DashboardPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>
                   <BarChart
-                    data={mockAuditionsByStatus}
+                    data={auditionsByStatus}
                     layout="vertical"
                     margin={{ left: 80 }}
                   >
@@ -315,66 +372,25 @@ export default function DashboardPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Expense Breakdown</CardTitle>
+                <CardTitle>Performance Insights</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={mockExpensesByCategory}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      label={({
-                        cx,
-                        cy,
-                        midAngle,
-                        innerRadius,
-                        outerRadius,
-                        percent,
-                        index,
-                      }) => {
-                        const RADIAN = Math.PI / 180;
-                        const radius =
-                          innerRadius + (outerRadius - innerRadius) * 1.2;
-                        const x =
-                          cx + radius * Math.cos(-midAngle * RADIAN) * 0.8;
-                        const y =
-                          cy + radius * Math.sin(-midAngle * RADIAN) * 0.8;
-                        return (
-                          <text
-                            x={x}
-                            y={y}
-                            fill="#888"
-                            textAnchor={x > cx ? "start" : "end"}
-                            dominantBaseline="central"
-                            fontSize={12}
-                          >
-                            {mockExpensesByCategory[index].name}{" "}
-                            (${mockExpensesByCategory[index].value})
-                          </text>
-                        );
-                      }}
-                    >
-                      {mockExpensesByCategory.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={`hsl(var(--chart-${(index % 5) + 1}))`}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => [`$${value}`, "Amount"]}
-                      contentStyle={{
-                        backgroundColor: "var(--background)",
-                        borderColor: "var(--border)",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {stats.totalAuditions > 0 ? 
+                        ((stats.callbacks / stats.totalAuditions) * 100).toFixed(1) : 0}%
+                    </div>
+                    <p className="text-sm text-muted-foreground">Callback Rate</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {stats.totalAuditions > 0 ? 
+                        ((stats.bookings / stats.totalAuditions) * 100).toFixed(1) : 0}%
+                    </div>
+                    <p className="text-sm text-muted-foreground">Booking Rate</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -382,9 +398,22 @@ export default function DashboardPage() {
 
         <TabsContent value="upcoming" className="space-y-4">
           <div className="grid gap-4">
-            {mockUpcomingAuditions.map((audition) => (
-              <UpcomingAuditionCard key={audition.id} audition={audition} />
-            ))}
+            {upcomingAuditions.length > 0 ? (
+              upcomingAuditions.map((audition) => (
+                <UpcomingAuditionCard key={audition.id} audition={audition} />
+              ))
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <FilmIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-semibold">No upcoming auditions</h3>
+                  <p className="text-muted-foreground">Add a new audition to get started.</p>
+                  <Button asChild className="mt-4">
+                    <Link href="/auditions/new">Add Audition</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>
@@ -436,24 +465,26 @@ interface UpcomingAuditionCardProps {
 }
 
 function UpcomingAuditionCard({ audition }: UpcomingAuditionCardProps) {
+  const auditionDate = new Date(audition.audition_date);
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <div className="flex flex-col md:flex-row">
         <div className="p-6 md:border-r md:min-w-[200px] flex items-center justify-center">
           <div className="flex flex-col items-center md:items-center space-y-2">
             <div className="text-2xl font-bold text-primary">
-              {audition.auditionDate.toLocaleDateString("en-US", {
+              {auditionDate.toLocaleDateString("en-US", {
                 day: "numeric",
               })}
             </div>
             <div className="text-sm font-medium">
-              {audition.auditionDate.toLocaleDateString("en-US", {
+              {auditionDate.toLocaleDateString("en-US", {
                 month: "short",
               })}{" "}
-              {audition.auditionDate.getFullYear()}
+              {auditionDate.getFullYear()}
             </div>
             <div className="text-sm text-muted-foreground">
-              {audition.auditionDate.toLocaleTimeString("en-US", {
+              {auditionDate.toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
               })}
@@ -463,18 +494,23 @@ function UpcomingAuditionCard({ audition }: UpcomingAuditionCardProps) {
         <CardContent className="flex-1 p-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">{audition.projectTitle}</h3>
+              <h3 className="font-bold text-lg">{audition.project_title}</h3>
               <div className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                {audition.roleName}
+                {audition.role_name}
               </div>
             </div>
+            {audition.actor && (
+              <p className="text-sm text-muted-foreground">
+                Actor: {audition.actor.name}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
-              Casting Director: {audition.castingDirector}
+              Casting Director: {audition.casting_director}
             </p>
             <div className="flex items-center text-sm text-muted-foreground">
               <div className="flex items-center">
                 <CalendarIcon className="mr-1 h-3 w-3" />
-                Location: {audition.location}
+                Location: {audition.location || 'Virtual'}
               </div>
             </div>
           </div>

@@ -1,27 +1,15 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import { SupabaseAdapter } from "@auth/supabase-adapter";
+import { supabase } from "@/lib/supabase";
 
 export const authOptions: NextAuthOptions = {
+  adapter: SupabaseAdapter({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  }),
   providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        // TODO: Replace with actual auth logic
-        if (credentials?.email === "demo@example.com" && credentials?.password === "password") {
-          return {
-            id: "1",
-            email: credentials.email,
-            name: "Demo User"
-          };
-        }
-        return null;
-      }
-    })
+    // We'll add providers here when you're ready
   ],
   pages: {
     signIn: '/sign-in',
@@ -31,7 +19,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {

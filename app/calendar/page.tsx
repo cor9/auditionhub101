@@ -19,74 +19,73 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { CalendarIcon, MapPinIcon, Clock, Building2, User } from "lucide-react";
-import type { AuditionData } from "@/types";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
+interface AuditionData {
+  id: string;
+  project_title: string;
+  role_name: string;
+  type: string;
+  status: string;
+  audition_date: string;
+  casting_director: string;
+  location: string;
+  actor?: {
+    name: string;
+  };
+}
+
 export default function CalendarPage() {
+  const { data: session } = useSession();
   const [auditions, setAuditions] = useState<AuditionData[]>([]);
   const [selectedAudition, setSelectedAudition] = useState<AuditionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, this would fetch from your API
-    const fetchAuditions = async () => {
-      try {
-        // Simulated API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Using mock data for now
-        const mockAuditions: AuditionData[] = [
-          {
-            id: "1",
-            projectTitle: "Disney Channel Series",
-            roleName: "Lead Child Role",
-            type: "TV",
-            status: "PENDING",
-            auditionDate: new Date("2025-07-15T14:30:00"),
-            castingCompany: "Disney Casting",
-            castingDirector: "Sarah Johnson",
-            location: "Los Angeles, CA",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: "2",
-            projectTitle: "Netflix Family Film",
-            roleName: "Supporting Role",
-            type: "FILM",
-            status: "SUBMITTED",
-            auditionDate: new Date("2025-07-18T10:00:00"),
-            castingCompany: "Netflix Casting",
-            castingDirector: "Michael Chen",
-            location: "Virtual",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: "3",
-            projectTitle: "National Cereal Commercial",
-            roleName: "Energetic Kid",
-            type: "COMMERCIAL",
-            status: "CALLBACK",
-            auditionDate: new Date("2025-07-20T16:15:00"),
-            castingCompany: "Commercial Casting Inc.",
-            castingDirector: "Lisa Rodriguez",
-            location: "New York, NY",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ];
+    if (session?.user?.id) {
+      fetchAuditions();
+    }
+  }, [session]);
 
-        setAuditions(mockAuditions);
-      } catch (error) {
-        console.error("Failed to fetch auditions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchAuditions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('auditions')
+        .select(`
+          *,
+          actors (
+            name
+          )
+        `)
+        .eq('user_id', session?.user?.id)
+        .order('audition_date', { ascending: true });
 
-    fetchAuditions();
-  }, []);
+      if (error) throw error;
+      setAuditions(data || []);
+    } catch (error) {
+      console.error('Error fetching auditions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!session) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to view your calendar
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -117,11 +116,21 @@ export default function CalendarPage() {
                 <p className="mt-2 text-sm text-muted-foreground">Loading calendar...</p>
               </div>
             </div>
-          ) : (
+          ) : auditions.length > 0 ? (
             <SmartCalendar
               auditions={auditions}
               onSelectEvent={(event) => setSelectedAudition(event.resource)}
             />
+          ) : (
+            <div className="flex h-[600px] items-center justify-center">
+              <div className="text-center">
+                <CalendarIcon className="mx-auto h-10 w-10 text-muted-foreground" />
+                <p className="mt-2 text-sm text-muted-foreground">No auditions scheduled</p>
+                <Button asChild className="mt-4">
+                  <Link href="/auditions/new">Add Your First Audition</Link>
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -129,29 +138,31 @@ export default function CalendarPage() {
       <Dialog open={!!selectedAudition} onOpenChange={() => setSelectedAudition(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedAudition?.projectTitle}</DialogTitle>
+            <DialogTitle>{selectedAudition?.project_title}</DialogTitle>
             <DialogDescription>
-              Role: {selectedAudition?.roleName}
+              Role: {selectedAudition?.role_name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              {selectedAudition?.auditionDate && (
-                format(new Date(selectedAudition.auditionDate), "PPP p")
+              {selectedAudition?.audition_date && (
+                format(new Date(selectedAudition.audition_date), "PPP p")
               )}
             </div>
             <div className="flex items-center gap-2 text-sm">
               <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-              {selectedAudition?.location}
+              {selectedAudition?.location || 'Virtual'}
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              {selectedAudition?.castingCompany}
-            </div>
+            {selectedAudition?.actor && (
+              <div className="flex items-center gap-2 text-sm">
+                <User className="h-4 w-4 text-muted-foreground" />
+                Actor: {selectedAudition.actor.name}
+              </div>
+            )}
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-muted-foreground" />
-              CD: {selectedAudition?.castingDirector}
+              CD: {selectedAudition?.casting_director}
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setSelectedAudition(null)}>

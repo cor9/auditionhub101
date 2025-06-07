@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,81 +27,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "next-auth/react";
 
-// Define types locally until Prisma is set up
+// Define types locally
 type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
 type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
 
 interface Audition {
   id: string;
-  projectTitle: string;
-  roleName: string;
+  project_title: string;
+  role_name: string;
   type: AuditionType;
   status: AuditionStatus;
-  auditionDate: Date;
-  castingCompany: string;
-  castingDirector: string;
+  audition_date: string;
+  casting_director: string;
   location: string;
+  actor?: {
+    name: string;
+  };
 }
-
-// Mock data for demonstration
-const mockAuditions: Audition[] = [
-  {
-    id: "1",
-    projectTitle: "Disney Channel Series",
-    roleName: "Lead Child Role",
-    type: "TV",
-    status: "PENDING",
-    auditionDate: new Date("2025-07-15T14:30:00"),
-    castingCompany: "Disney Casting",
-    castingDirector: "Sarah Johnson",
-    location: "Los Angeles, CA",
-  },
-  {
-    id: "2",
-    projectTitle: "Netflix Family Film",
-    roleName: "Supporting Role",
-    type: "FILM",
-    status: "SUBMITTED",
-    auditionDate: new Date("2025-07-18T10:00:00"),
-    castingCompany: "Netflix Casting",
-    castingDirector: "Michael Chen",
-    location: "Virtual",
-  },
-  {
-    id: "3",
-    projectTitle: "National Cereal Commercial",
-    roleName: "Energetic Kid",
-    type: "COMMERCIAL",
-    status: "CALLBACK",
-    auditionDate: new Date("2025-07-20T16:15:00"),
-    castingCompany: "Commercial Casting Inc.",
-    castingDirector: "Lisa Rodriguez",
-    location: "New York, NY",
-  },
-  {
-    id: "4",
-    projectTitle: "Summer Camp Adventure",
-    roleName: "Camp Counselor",
-    type: "FILM",
-    status: "BOOKED",
-    auditionDate: new Date("2025-07-05T11:00:00"),
-    castingCompany: "Independent Films",
-    castingDirector: "Jason Taylor",
-    location: "Chicago, IL",
-  },
-  {
-    id: "5",
-    projectTitle: "Educational Series",
-    roleName: "Science Kid",
-    type: "TV",
-    status: "RELEASED",
-    auditionDate: new Date("2025-06-28T13:45:00"),
-    castingCompany: "Educational Media",
-    castingDirector: "Patricia Wong",
-    location: "Virtual",
-  },
-];
 
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
@@ -129,17 +74,48 @@ const statusIcons = {
 };
 
 export default function AuditionsPage() {
+  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<AuditionStatus | "ALL">("ALL");
   const [typeFilter, setTypeFilter] = useState<AuditionType | "ALL">("ALL");
   const [activeTab, setActiveTab] = useState("all");
+  const [auditions, setAuditions] = useState<Audition[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredAuditions = mockAuditions.filter((audition) => {
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchAuditions();
+    }
+  }, [session]);
+
+  const fetchAuditions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('auditions')
+        .select(`
+          *,
+          actors (
+            name
+          )
+        `)
+        .eq('user_id', session?.user?.id)
+        .order('audition_date', { ascending: false });
+
+      if (error) throw error;
+      setAuditions(data || []);
+    } catch (error) {
+      console.error('Error fetching auditions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredAuditions = auditions.filter((audition) => {
     // Search term filter
     const matchesSearch =
       searchTerm === "" ||
-      audition.projectTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      audition.roleName.toLowerCase().includes(searchTerm.toLowerCase());
+      audition.project_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      audition.role_name.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Status filter
     const matchesStatus = statusFilter === "ALL" || audition.status === statusFilter;
@@ -148,16 +124,33 @@ export default function AuditionsPage() {
     const matchesType = typeFilter === "ALL" || audition.type === typeFilter;
 
     // Tab filter
+    const auditionDate = new Date(audition.audition_date);
     const matchesTab =
       activeTab === "all" ||
       (activeTab === "upcoming" &&
-        audition.auditionDate > new Date() &&
+        auditionDate > new Date() &&
         ["PENDING", "SUBMITTED", "CALLBACK"].includes(audition.status)) ||
       (activeTab === "past" &&
-        (audition.auditionDate <= new Date() || ["BOOKED", "RELEASED"].includes(audition.status)));
+        (auditionDate <= new Date() || ["BOOKED", "RELEASED"].includes(audition.status)));
 
     return matchesSearch && matchesStatus && matchesType && matchesTab;
   });
+
+  if (!session) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to view your auditions
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -267,13 +260,19 @@ export default function AuditionsPage() {
 
         <TabsContent value="all" className="space-y-4">
           <div className="grid gap-4">
-            {filteredAuditions.map((audition) => (
-              <AuditionCard key={audition.id} audition={audition} />
-            ))}
-            {filteredAuditions.length === 0 && (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Loading auditions...</p>
+              </div>
+            ) : filteredAuditions.length > 0 ? (
+              filteredAuditions.map((audition) => (
+                <AuditionCard key={audition.id} audition={audition} />
+              ))
+            ) : (
               <EmptyState
                 title="No auditions found"
-                description="Try adjusting your search or filters."
+                description="Add your first audition to get started."
               />
             )}
           </div>
@@ -281,10 +280,16 @@ export default function AuditionsPage() {
 
         <TabsContent value="upcoming" className="space-y-4">
           <div className="grid gap-4">
-            {filteredAuditions.map((audition) => (
-              <AuditionCard key={audition.id} audition={audition} />
-            ))}
-            {filteredAuditions.length === 0 && (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Loading auditions...</p>
+              </div>
+            ) : filteredAuditions.length > 0 ? (
+              filteredAuditions.map((audition) => (
+                <AuditionCard key={audition.id} audition={audition} />
+              ))
+            ) : (
               <EmptyState
                 title="No upcoming auditions"
                 description="Add a new audition to get started."
@@ -295,10 +300,16 @@ export default function AuditionsPage() {
 
         <TabsContent value="past" className="space-y-4">
           <div className="grid gap-4">
-            {filteredAuditions.map((audition) => (
-              <AuditionCard key={audition.id} audition={audition} />
-            ))}
-            {filteredAuditions.length === 0 && (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Loading auditions...</p>
+              </div>
+            ) : filteredAuditions.length > 0 ? (
+              filteredAuditions.map((audition) => (
+                <AuditionCard key={audition.id} audition={audition} />
+              ))
+            ) : (
               <EmptyState
                 title="No past auditions"
                 description="Past auditions will appear here."
@@ -317,6 +328,7 @@ interface AuditionCardProps {
 
 function AuditionCard({ audition }: AuditionCardProps) {
   const StatusIcon = statusIcons[audition.status];
+  const auditionDate = new Date(audition.audition_date);
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -324,18 +336,18 @@ function AuditionCard({ audition }: AuditionCardProps) {
         <div className="p-6 sm:border-r sm:min-w-[150px] flex items-center justify-center">
           <div className="flex flex-col items-center sm:items-center space-y-2">
             <div className="text-2xl font-bold text-primary">
-              {audition.auditionDate.toLocaleDateString("en-US", {
+              {auditionDate.toLocaleDateString("en-US", {
                 day: "numeric",
               })}
             </div>
             <div className="text-sm font-medium">
-              {audition.auditionDate.toLocaleDateString("en-US", {
+              {auditionDate.toLocaleDateString("en-US", {
                 month: "short",
               })}{" "}
-              {audition.auditionDate.getFullYear()}
+              {auditionDate.getFullYear()}
             </div>
             <div className="text-sm text-muted-foreground">
-              {audition.auditionDate.toLocaleTimeString("en-US", {
+              {auditionDate.toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
               })}
@@ -345,7 +357,7 @@ function AuditionCard({ audition }: AuditionCardProps) {
         <CardContent className="flex-1 p-6">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-lg">{audition.projectTitle}</h3>
+              <h3 className="font-bold text-lg">{audition.project_title}</h3>
               <Badge
                 className={cn(
                   "ml-auto sm:ml-0",
@@ -363,14 +375,19 @@ function AuditionCard({ audition }: AuditionCardProps) {
                 {audition.status.charAt(0) + audition.status.slice(1).toLowerCase()}
               </Badge>
             </div>
-            <p className="text-sm font-medium">Role: {audition.roleName}</p>
+            <p className="text-sm font-medium">Role: {audition.role_name}</p>
+            {audition.actor && (
+              <p className="text-sm text-muted-foreground">
+                Actor: {audition.actor.name}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
-              {audition.castingCompany} • CD: {audition.castingDirector}
+              CD: {audition.casting_director}
             </p>
             <div className="flex items-center text-sm text-muted-foreground mt-2">
               <div className="flex items-center">
                 <CalendarIcon className="mr-1 h-3 w-3" />
-                Location: {audition.location}
+                Location: {audition.location || 'Virtual'}
               </div>
             </div>
           </div>

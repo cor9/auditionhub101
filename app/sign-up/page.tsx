@@ -15,7 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FilmIcon } from "lucide-react";
+import { FilmIcon, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -28,21 +29,29 @@ export default function SignUpPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const email = formData.get("email");
-      const password = formData.get("password");
-      const confirmPassword = formData.get("confirmPassword");
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+      const confirmPassword = formData.get("confirmPassword") as string;
 
       if (password !== confirmPassword) {
         throw new Error("Passwords do not match");
       }
 
-      // TODO: Implement actual registration
-      console.log("Sign up attempt:", { email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-      // Simulate successful registration
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1000);
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "Success",
+        description: "Account created successfully! Please check your email to verify your account.",
+      });
+
+      router.push("/dashboard");
     } catch (error) {
       toast({
         title: "Error",
@@ -76,6 +85,7 @@ export default function SignUpPage() {
                 type="email"
                 placeholder="name@example.com"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -85,6 +95,7 @@ export default function SignUpPage() {
                 name="password"
                 type="password"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -94,6 +105,7 @@ export default function SignUpPage() {
                 name="confirmPassword"
                 type="password"
                 required
+                disabled={isLoading}
               />
             </div>
           </CardContent>
@@ -103,7 +115,14 @@ export default function SignUpPage() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create account"
+              )}
             </Button>
             <div className="text-center text-sm">
               Already have an account?{" "}

@@ -6,7 +6,6 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import type { AuditionData } from '@/types';
 import { cn } from '@/lib/utils';
 
 const locales = {
@@ -20,6 +19,20 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
+
+interface AuditionData {
+  id: string;
+  project_title: string;
+  role_name: string;
+  type: string;
+  status: string;
+  audition_date: string;
+  casting_director: string;
+  location: string;
+  actor?: {
+    name: string;
+  };
+}
 
 interface SmartCalendarProps {
   auditions: AuditionData[];
@@ -70,9 +83,9 @@ const eventStyleGetter = (event: any) => {
 export function SmartCalendar({ auditions, onSelectEvent }: SmartCalendarProps) {
   const events = auditions.map(audition => ({
     id: audition.id,
-    title: `${audition.projectTitle} - ${audition.roleName}`,
-    start: new Date(audition.auditionDate!),
-    end: new Date(new Date(audition.auditionDate!).getTime() + 60 * 60 * 1000), // 1 hour duration
+    title: `${audition.project_title} - ${audition.role_name}`,
+    start: new Date(audition.audition_date),
+    end: new Date(new Date(audition.audition_date).getTime() + 60 * 60 * 1000), // 1 hour duration
     resource: audition,
   }));
 
