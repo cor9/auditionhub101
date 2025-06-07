@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, User, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Loader2, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/components/session-provider";
 import Link from "next/link";
@@ -40,6 +41,7 @@ export default function ActorsSettingsPage() {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -49,6 +51,20 @@ export default function ActorsSettingsPage() {
 
   const fetchActors = async () => {
     try {
+      setConnectionError(null);
+      
+      // Test the connection first
+      const { data: testData, error: testError } = await supabase
+        .from('actors')
+        .select('count')
+        .limit(1);
+
+      if (testError) {
+        console.error('Supabase connection test failed:', testError);
+        setConnectionError(`Connection failed: ${testError.message}`);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('actors')
         .select('*')
@@ -56,15 +72,17 @@ export default function ActorsSettingsPage() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase query error:', error);
         throw error;
       }
+      
       setActors(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching actors:', error);
+      setConnectionError(error.message || 'Failed to connect to database');
       toast({
-        title: "Error",
-        description: "Failed to load actors. Please check your connection.",
+        title: "Connection Error",
+        description: "Failed to connect to Supabase. Please check your environment variables.",
         variant: "destructive",
       });
     } finally {
@@ -214,6 +232,39 @@ export default function ActorsSettingsPage() {
             <Link href="/sign-in">Sign In</Link>
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Actors</h2>
+          <p className="text-muted-foreground">
+            Manage your child actors' profiles
+          </p>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Supabase Connection Error:</strong> {connectionError}
+            <br />
+            <br />
+            Please check that your Supabase environment variables are correctly set:
+            <ul className="list-disc list-inside mt-2">
+              <li>NEXT_PUBLIC_SUPABASE_URL should be your project URL</li>
+              <li>NEXT_PUBLIC_SUPABASE_ANON_KEY should be your anon/public key (starts with "eyJ")</li>
+            </ul>
+            <br />
+            You can find these values in your Supabase project settings under "API".
+          </AlertDescription>
+        </Alert>
+        
+        <Button onClick={fetchActors} variant="outline">
+          Retry Connection
+        </Button>
       </div>
     );
   }
