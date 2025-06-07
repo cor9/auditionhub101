@@ -144,8 +144,8 @@ export default function Navbar() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="flex items-center gap-2">
               {user && (
-                <Button variant="outline\" className="hidden md:flex\" asChild>
-                  <Link href="/settings">
+                <Button variant="outline" className="hidden md:flex" asChild>
+                  <Link href="/settings/actors">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
