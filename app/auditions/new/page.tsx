@@ -25,36 +25,56 @@ import { format } from "date-fns";
 import { CalendarIcon, ChevronLeftIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import type { ActorProfile } from "@/types";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "@/components/session-provider";
+import Link from "next/link";
 
-// Mock data for demonstration
-const mockActors: ActorProfile[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    age: 12,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Michael Chen",
-    age: 8,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+interface ActorProfile {
+  id: string;
+  name: string;
+  age: number;
+  is_active: boolean;
+}
 
 export default function NewAuditionPage() {
   const router = useRouter();
+  const { user } = useSession();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [submitDate, setSubmitDate] = useState<Date>();
   const [isInPerson, setIsInPerson] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [actors, setActors] = useState<ActorProfile[]>(mockActors);
+  const [actors, setActors] = useState<ActorProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchActors();
+    }
+  }, [user]);
+
+  const fetchActors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('actors')
+        .select('id, name, age, is_active')
+        .eq('user_id', user?.id)
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setActors(data || []);
+    } catch (error) {
+      console.error('Error fetching actors:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load actors",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,24 +84,29 @@ export default function NewAuditionPage() {
       const formData = new FormData(e.currentTarget);
       
       const auditionData = {
-        actorId: formData.get("actor"),
-        projectTitle: formData.get("projectTitle"),
-        roleName: formData.get("roleName"),
-        roleSize: formData.get("roleSize"),
+        user_id: user?.id,
+        actor_id: formData.get("actor"),
+        project_title: formData.get("projectTitle"),
+        role_name: formData.get("roleName"),
+        role_size: formData.get("roleSize"),
         type: formData.get("type"),
-        castingDirector: formData.get("castingDirector"),
-        isInPerson,
+        casting_director: formData.get("castingDirector"),
+        is_in_person: isInPerson,
         location: isInPerson ? formData.get("location") : null,
-        auditionDate: date,
+        audition_date: date?.toISOString(),
         source: formData.get("source"),
         union: formData.get("union"),
         breakdown: formData.get("breakdown"),
-        dateSubmitted: submitDate,
+        date_submitted: submitDate?.toISOString(),
         notes: formData.get("notes"),
+        status: 'PENDING',
       };
 
-      // TODO: Implement API call
-      console.log(auditionData);
+      const { error } = await supabase
+        .from('auditions')
+        .insert([auditionData]);
+
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -90,6 +115,7 @@ export default function NewAuditionPage() {
 
       router.push("/auditions");
     } catch (error) {
+      console.error('Error creating audition:', error);
       toast({
         title: "Error",
         description: "Failed to create audition. Please try again.",
@@ -99,6 +125,49 @@ export default function NewAuditionPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to create auditions
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (actors.length === 0) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">No Actors Found</h2>
+          <p className="text-muted-foreground">
+            You need to add at least one actor before creating auditions
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/settings/actors">Add Actor</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

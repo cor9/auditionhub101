@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,51 +16,64 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Upload } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UploadDropzone } from "@/lib/uploadthing";
-import type { ActorProfile } from "@/types";
+import { supabase } from "@/lib/supabase";
+import { useSession } from "@/components/session-provider";
+import Link from "next/link";
 
-// Mock data for demonstration
-const mockActors: ActorProfile[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    age: 12,
-    gender: "Female",
-    ethnicity: "Caucasian",
-    height: "4'11\"",
-    weight: "90 lbs",
-    hairColor: "Brown",
-    eyeColor: "Blue",
-    bio: "Energetic young actress with experience in musical theatre and commercials.",
-    headshot: "https://example.com/headshot1.jpg",
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Michael Chen",
-    age: 8,
-    gender: "Male",
-    ethnicity: "Asian",
-    height: "4'2\"",
-    weight: "65 lbs",
-    hairColor: "Black",
-    eyeColor: "Brown",
-    bio: "Charismatic child actor with a natural talent for comedy.",
-    headshot: "https://example.com/headshot2.jpg",
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+interface ActorProfile {
+  id: string;
+  name: string;
+  age: number;
+  gender?: string;
+  ethnicity?: string;
+  height?: string;
+  weight?: string;
+  hair_color?: string;
+  eye_color?: string;
+  bio?: string;
+  headshot?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function ActorsSettingsPage() {
+  const { user } = useSession();
   const { toast } = useToast();
-  const [actors, setActors] = useState<ActorProfile[]>(mockActors);
+  const [actors, setActors] = useState<ActorProfile[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchActors();
+    }
+  }, [user]);
+
+  const fetchActors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('actors')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setActors(data || []);
+    } catch (error) {
+      console.error('Error fetching actors:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load actors",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,21 +86,44 @@ export default function ActorsSettingsPage() {
       ethnicity: formData.get("ethnicity") as string,
       height: formData.get("height") as string,
       weight: formData.get("weight") as string,
-      hairColor: formData.get("hairColor") as string,
-      eyeColor: formData.get("eyeColor") as string,
+      hair_color: formData.get("hairColor") as string,
+      eye_color: formData.get("eyeColor") as string,
       bio: formData.get("bio") as string,
+      user_id: user?.id,
     };
 
     try {
-      // TODO: Implement API call
-      toast({
-        title: "Success",
-        description: isEditing ? "Actor updated successfully" : "Actor added successfully",
-      });
+      if (isEditing) {
+        const { error } = await supabase
+          .from('actors')
+          .update(actorData)
+          .eq('id', isEditing)
+          .eq('user_id', user?.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Actor updated successfully",
+        });
+      } else {
+        const { error } = await supabase
+          .from('actors')
+          .insert([actorData]);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Actor added successfully",
+        });
+      }
       
       setIsEditing(null);
       setIsAddingNew(false);
+      fetchActors(); // Refresh the list
     } catch (error) {
+      console.error('Error saving actor:', error);
       toast({
         title: "Error",
         description: "Failed to save actor profile",
@@ -98,13 +134,21 @@ export default function ActorsSettingsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      // TODO: Implement API call
+      const { error } = await supabase
+        .from('actors')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
       setActors(actors.filter(actor => actor.id !== id));
       toast({
         title: "Success",
         description: "Actor deleted successfully",
       });
     } catch (error) {
+      console.error('Error deleting actor:', error);
       toast({
         title: "Error",
         description: "Failed to delete actor",
@@ -112,6 +156,61 @@ export default function ActorsSettingsPage() {
       });
     }
   };
+
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('actors')
+        .update({ is_active: isActive })
+        .eq('id', id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setActors(actors.map(actor => 
+        actor.id === id ? { ...actor, is_active: isActive } : actor
+      ));
+
+      toast({
+        title: "Status updated",
+        description: `Actor is now ${isActive ? "active" : "inactive"}`,
+      });
+    } catch (error) {
+      console.error('Error updating actor status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update actor status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to manage actors
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading actors...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -128,87 +227,109 @@ export default function ActorsSettingsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {actors.map((actor) => (
-          <Card key={actor.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                {actor.name}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsEditing(actor.id)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(actor.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-              <CardDescription>Age: {actor.age}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-                {actor.headshot ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={actor.headshot}
-                    alt={`${actor.name}'s headshot`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <Upload className="h-12 w-12 text-muted-foreground" />
+      {actors.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-8">
+            <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">No actors yet</h3>
+            <p className="text-muted-foreground">Add your first actor to get started.</p>
+            <Button onClick={() => setIsAddingNew(true)} className="mt-4">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Actor
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {actors.map((actor) => (
+            <Card key={actor.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  {actor.name}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsEditing(actor.id)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(actor.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
+                </CardTitle>
+                <CardDescription>Age: {actor.age}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+                  {actor.headshot ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={actor.headshot}
+                      alt={`${actor.name}'s headshot`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Upload className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {actor.gender && (
+                    <div>
+                      <span className="font-medium">Gender:</span> {actor.gender}
+                    </div>
+                  )}
+                  {actor.ethnicity && (
+                    <div>
+                      <span className="font-medium">Ethnicity:</span> {actor.ethnicity}
+                    </div>
+                  )}
+                  {actor.height && (
+                    <div>
+                      <span className="font-medium">Height:</span> {actor.height}
+                    </div>
+                  )}
+                  {actor.weight && (
+                    <div>
+                      <span className="font-medium">Weight:</span> {actor.weight}
+                    </div>
+                  )}
+                  {actor.hair_color && (
+                    <div>
+                      <span className="font-medium">Hair:</span> {actor.hair_color}
+                    </div>
+                  )}
+                  {actor.eye_color && (
+                    <div>
+                      <span className="font-medium">Eyes:</span> {actor.eye_color}
+                    </div>
+                  )}
+                </div>
+                {actor.bio && (
+                  <p className="text-sm text-muted-foreground">{actor.bio}</p>
                 )}
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Gender:</span> {actor.gender}
+              </CardContent>
+              <CardFooter>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor={`active-${actor.id}`}>Active</Label>
+                  <Switch
+                    id={`active-${actor.id}`}
+                    checked={actor.is_active}
+                    onCheckedChange={(checked) => handleToggleActive(actor.id, checked)}
+                  />
                 </div>
-                <div>
-                  <span className="font-medium">Ethnicity:</span> {actor.ethnicity}
-                </div>
-                <div>
-                  <span className="font-medium">Height:</span> {actor.height}
-                </div>
-                <div>
-                  <span className="font-medium">Weight:</span> {actor.weight}
-                </div>
-                <div>
-                  <span className="font-medium">Hair:</span> {actor.hairColor}
-                </div>
-                <div>
-                  <span className="font-medium">Eyes:</span> {actor.eyeColor}
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{actor.bio}</p>
-            </CardContent>
-            <CardFooter>
-              <div className="flex items-center space-x-2">
-                <Label htmlFor={`active-${actor.id}`}>Active</Label>
-                <Switch
-                  id={`active-${actor.id}`}
-                  checked={actor.isActive}
-                  onCheckedChange={(checked) => {
-                    // TODO: Implement status update
-                    toast({
-                      title: "Status updated",
-                      description: `${actor.name} is now ${checked ? "active" : "inactive"}`,
-                    });
-                  }}
-                />
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={isAddingNew || !!isEditing} onOpenChange={() => {
         setIsAddingNew(false);
@@ -223,59 +344,96 @@ export default function ActorsSettingsPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" required />
+              <Input 
+                id="name" 
+                name="name" 
+                required 
+                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.name : ""}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="age">Age</Label>
-                <Input id="age" name="age" type="number" required />
+                <Input 
+                  id="age" 
+                  name="age" 
+                  type="number" 
+                  required 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <Input id="gender" name="gender" />
+                <Input 
+                  id="gender" 
+                  name="gender" 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.gender : ""}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ethnicity">Ethnicity</Label>
-              <Input id="ethnicity" name="ethnicity" />
+              <Input 
+                id="ethnicity" 
+                name="ethnicity" 
+                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.ethnicity : ""}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="height">Height</Label>
-                <Input id="height" name="height" />
+                <Input 
+                  id="height" 
+                  name="height" 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.height : ""}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="weight">Weight</Label>
-                <Input id="weight" name="weight" />
+                <Input 
+                  id="weight" 
+                  name="weight" 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.weight : ""}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="hairColor">Hair Color</Label>
-                <Input id="hairColor" name="hairColor" />
+                <Input 
+                  id="hairColor" 
+                  name="hairColor" 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.hair_color : ""}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="eyeColor">Eye Color</Label>
-                <Input id="eyeColor" name="eyeColor" />
+                <Input 
+                  id="eyeColor" 
+                  name="eyeColor" 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.eye_color : ""}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
-              <Textarea id="bio" name="bio" />
+              <Textarea 
+                id="bio" 
+                name="bio" 
+                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.bio : ""}
+              />
             </div>
             <div className="space-y-2">
               <Label>Headshot</Label>
               <UploadDropzone
                 endpoint="imageUploader"
                 onClientUploadComplete={(res) => {
-                  // Handle upload complete
                   toast({
                     title: "Upload complete",
                     description: "Headshot uploaded successfully",
                   });
                 }}
                 onUploadError={(error: Error) => {
-                  // Handle upload error
                   toast({
                     title: "Upload failed",
                     description: error.message,
