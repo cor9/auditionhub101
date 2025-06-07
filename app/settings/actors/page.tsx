@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, User } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/components/session-provider";
@@ -39,6 +39,7 @@ export default function ActorsSettingsPage() {
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -54,13 +55,16 @@ export default function ActorsSettingsPage() {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       setActors(data || []);
     } catch (error) {
       console.error('Error fetching actors:', error);
       toast({
         title: "Error",
-        description: "Failed to load actors",
+        description: "Failed to load actors. Please check your connection.",
         variant: "destructive",
       });
     } finally {
@@ -70,6 +74,8 @@ export default function ActorsSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSaving(true);
+    
     const formData = new FormData(e.currentTarget);
     
     const actorData = {
@@ -80,6 +86,17 @@ export default function ActorsSettingsPage() {
       user_id: user?.id,
     };
 
+    // Validate required fields
+    if (!actorData.name || !actorData.age || !user?.id) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
+    }
+
     try {
       if (isEditing) {
         const { error } = await supabase
@@ -88,7 +105,10 @@ export default function ActorsSettingsPage() {
           .eq('id', isEditing)
           .eq('user_id', user?.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
         
         toast({
           title: "Success",
@@ -99,7 +119,10 @@ export default function ActorsSettingsPage() {
           .from('actors')
           .insert([actorData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
         
         toast({
           title: "Success",
@@ -109,18 +132,24 @@ export default function ActorsSettingsPage() {
       
       setIsEditing(null);
       setIsAddingNew(false);
-      fetchActors(); // Refresh the list
-    } catch (error) {
+      await fetchActors(); // Refresh the list
+    } catch (error: any) {
       console.error('Error saving actor:', error);
       toast({
         title: "Error",
-        description: "Failed to save actor profile",
+        description: error.message || "Failed to save actor profile. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this actor?")) {
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('actors')
@@ -286,8 +315,10 @@ export default function ActorsSettingsPage() {
       )}
 
       <Dialog open={isAddingNew || !!isEditing} onOpenChange={() => {
-        setIsAddingNew(false);
-        setIsEditing(null);
+        if (!isSaving) {
+          setIsAddingNew(false);
+          setIsEditing(null);
+        }
       }}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
@@ -296,13 +327,13 @@ export default function ActorsSettingsPage() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Just the essentials - Name, Age, Gender, Bio */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input 
                 id="name" 
                 name="name" 
                 required 
+                disabled={isSaving}
                 defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.name : ""}
                 placeholder="Enter actor's name"
               />
@@ -315,7 +346,10 @@ export default function ActorsSettingsPage() {
                   id="age" 
                   name="age" 
                   type="number" 
+                  min="1"
+                  max="18"
                   required 
+                  disabled={isSaving}
                   defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
                   placeholder="Age"
                 />
@@ -325,6 +359,7 @@ export default function ActorsSettingsPage() {
                 <Input 
                   id="gender" 
                   name="gender" 
+                  disabled={isSaving}
                   defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.gender : ""}
                   placeholder="Optional"
                 />
@@ -336,6 +371,7 @@ export default function ActorsSettingsPage() {
               <Textarea 
                 id="bio" 
                 name="bio" 
+                disabled={isSaving}
                 defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.bio : ""}
                 placeholder="Brief description (optional)"
                 className="min-h-[80px]"
@@ -346,6 +382,7 @@ export default function ActorsSettingsPage() {
               <Button
                 type="button"
                 variant="outline"
+                disabled={isSaving}
                 onClick={() => {
                   setIsAddingNew(false);
                   setIsEditing(null);
@@ -353,8 +390,15 @@ export default function ActorsSettingsPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                {isEditing ? "Save Changes" : "Add Actor"}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  isEditing ? "Save Changes" : "Add Actor"
+                )}
               </Button>
             </div>
           </form>
