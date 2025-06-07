@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload, User } from "lucide-react";
+import { Plus, Pencil, Trash2, User } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/components/session-provider";
@@ -26,13 +26,7 @@ interface ActorProfile {
   name: string;
   age: number;
   gender?: string;
-  ethnicity?: string;
-  height?: string;
-  weight?: string;
-  hair_color?: string;
-  eye_color?: string;
   bio?: string;
-  headshot?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -82,11 +76,6 @@ export default function ActorsSettingsPage() {
       name: formData.get("name") as string,
       age: parseInt(formData.get("age") as string),
       gender: formData.get("gender") as string || null,
-      ethnicity: formData.get("ethnicity") as string || null,
-      height: formData.get("height") as string || null,
-      weight: formData.get("weight") as string || null,
-      hair_color: formData.get("hairColor") as string || null,
-      eye_color: formData.get("eyeColor") as string || null,
       bio: formData.get("bio") as string || null,
       user_id: user?.id,
     };
@@ -266,54 +255,20 @@ export default function ActorsSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-                  {actor.headshot ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={actor.headshot}
-                      alt={`${actor.name}'s headshot`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <User className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
+                  <div className="flex h-full items-center justify-center">
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="space-y-1 text-sm">
                   {actor.gender && (
                     <div>
                       <span className="font-medium">Gender:</span> {actor.gender}
                     </div>
                   )}
-                  {actor.ethnicity && (
-                    <div>
-                      <span className="font-medium">Ethnicity:</span> {actor.ethnicity}
-                    </div>
-                  )}
-                  {actor.height && (
-                    <div>
-                      <span className="font-medium">Height:</span> {actor.height}
-                    </div>
-                  )}
-                  {actor.weight && (
-                    <div>
-                      <span className="font-medium">Weight:</span> {actor.weight}
-                    </div>
-                  )}
-                  {actor.hair_color && (
-                    <div>
-                      <span className="font-medium">Hair:</span> {actor.hair_color}
-                    </div>
-                  )}
-                  {actor.eye_color && (
-                    <div>
-                      <span className="font-medium">Eyes:</span> {actor.eye_color}
-                    </div>
+                  {actor.bio && (
+                    <p className="text-muted-foreground">{actor.bio}</p>
                   )}
                 </div>
-                {actor.bio && (
-                  <p className="text-sm text-muted-foreground">{actor.bio}</p>
-                )}
               </CardContent>
               <CardFooter>
                 <div className="flex items-center space-x-2">
@@ -334,14 +289,14 @@ export default function ActorsSettingsPage() {
         setIsAddingNew(false);
         setIsEditing(null);
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Actor Profile" : "Add New Actor"}
+              {isEditing ? "Edit Actor" : "Add New Actor"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Essential Fields Only */}
+            {/* Just the essentials - Name, Age, Gender, Bio */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input 
@@ -353,36 +308,25 @@ export default function ActorsSettingsPage() {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="age">Age *</Label>
-              <Input 
-                id="age" 
-                name="age" 
-                type="number" 
-                required 
-                defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
-                placeholder="Enter age"
-              />
-            </div>
-
-            {/* Optional Fields */}
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="age">Age *</Label>
+                <Input 
+                  id="age" 
+                  name="age" 
+                  type="number" 
+                  required 
+                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.age : ""}
+                  placeholder="Age"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
                 <Input 
                   id="gender" 
                   name="gender" 
                   defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.gender : ""}
-                  placeholder="e.g., Female"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="height">Height</Label>
-                <Input 
-                  id="height" 
-                  name="height" 
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.height : ""}
-                  placeholder="e.g., 4'11\""
+                  placeholder="Optional"
                 />
               </div>
             </div>
@@ -393,12 +337,12 @@ export default function ActorsSettingsPage() {
                 id="bio" 
                 name="bio" 
                 defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.bio : ""}
-                placeholder="Brief description of the actor..."
+                placeholder="Brief description (optional)"
                 className="min-h-[80px]"
               />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
