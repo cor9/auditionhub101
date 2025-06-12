@@ -38,7 +38,7 @@ interface Audition {
   id: string;
   project_title: string;
   role_name: string;
-  type: AuditionType;
+  project_type: string;  // ← Changed from 'type'
   status: AuditionStatus;
   audition_date: string;
   casting_director: string;
@@ -58,10 +58,10 @@ const statusColors = {
 
 const typeColors = {
   TV: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
-  FILM: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+  FILM: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300", 
   COMMERCIAL: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
   THEATRE: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
-  VOICEOVER: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",
+  VOICE_OVER: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",  // Changed from VOICEOVER
   OTHER: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 
@@ -121,7 +121,7 @@ export default function AuditionsPage() {
     const matchesStatus = statusFilter === "ALL" || audition.status === statusFilter;
 
     // Type filter
-    const matchesType = typeFilter === "ALL" || audition.type === typeFilter;
+   const matchesType = typeFilter === "ALL" || audition.project_type === typeFilter;
 
     // Tab filter
     const auditionDate = new Date(audition.audition_date);
@@ -236,9 +236,8 @@ export default function AuditionsPage() {
               <DropdownMenuItem onClick={() => setTypeFilter("THEATRE")}>
                 Theatre
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("VOICEOVER")}>
-                Voiceover
-              </DropdownMenuItem>
+           <DropdownMenuItem onClick={() => setTypeFilter("VOICE_OVER")}> 
+</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTypeFilter("OTHER")}>
                 Other
               </DropdownMenuItem>
@@ -359,14 +358,15 @@ function AuditionCard({ audition }: AuditionCardProps) {
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-bold text-lg">{audition.project_title}</h3>
               <Badge
-                className={cn(
-                  "ml-auto sm:ml-0",
-                  typeColors[audition.type]
-                )}
-                variant="outline"
-              >
-                {audition.type}
-              </Badge>
+  className={cn(
+    "ml-auto sm:ml-0",
+    typeColors[audition.project_type.toUpperCase() as AuditionType]  // Add toUpperCase()
+  )}
+  variant="outline"
+>
+  {audition.project_type}
+</Badge>
+              
               <Badge
                 className={cn(statusColors[audition.status])}
                 variant="outline"
