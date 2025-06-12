@@ -2,39 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
-  BookOpen,
-  Camera,
-  Gamepad2,
-  MessageCircle,
-  Video,
-  Calendar,
   FilmIcon,
+  Calendar,
   LineChart,
-  MailCheck,
   MessageSquarePlus,
   Receipt,
+  MailCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
-
-export default async function Page() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  const { data: todos } = await supabase.from('todos').select()
-
-  return (
-    <ul>
-      {todos?.map((todo) => (
-        <li>{todo}</li>
-      ))}
-    </ul>
-  )
-}
-
 
 interface FeatureCardProps {
   icon: React.ElementType;
@@ -43,6 +18,35 @@ interface FeatureCardProps {
   iconColor: string;
   gradientFrom: string;
   gradientTo: string;
+}
+
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+  iconColor,
+  gradientFrom,
+  gradientTo,
+}: FeatureCardProps) {
+  return (
+    <div className="relative overflow-hidden rounded-lg border bg-background p-6 shadow-sm transition-all hover:shadow-md">
+      <div className="flex flex-col space-y-4">
+        <div
+          className={cn(
+            "h-12 w-12 rounded-full bg-gradient-to-b p-2",
+            gradientFrom,
+            gradientTo
+          )}
+        >
+          <Icon className={cn("h-full w-full", iconColor)} />
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-bold">{title}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -187,35 +191,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  iconColor,
-  gradientFrom,
-  gradientTo,
-}: FeatureCardProps) {
-  return (
-    <div className="relative overflow-hidden rounded-lg border bg-background p-6 shadow-sm transition-all hover:shadow-md">
-      <div className="flex flex-col space-y-4">
-        <div
-          className={cn(
-            "h-12 w-12 rounded-full bg-gradient-to-b p-2",
-            gradientFrom,
-            gradientTo
-          )}
-        >
-          <Icon className={cn("h-full w-full", iconColor)} />
-        </div>
-        <div className="space-y-2">
-          <h3 className="font-bold">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
     </div>
   );
 }
