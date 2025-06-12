@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { FileUpload } from "@/components/FileUpload";
 import {
   Popover,
   PopoverContent,
@@ -82,6 +83,9 @@ export default function NewAuditionPage() {
     }
     return age;
   };
+
+  const [headshotUrl, setHeadshotUrl] = useState("");
+const [resumeUrl, setResumeUrl] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
