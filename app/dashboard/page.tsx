@@ -194,11 +194,11 @@ export default function DashboardPage() {
 
 
 
-      <Tabs
-        defaultValue="overview"
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
+   <Tabs
+  defaultValue="overview"
+  onValueChange={setActiveTab}
+  className="space-y-4"
+>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
