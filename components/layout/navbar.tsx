@@ -16,6 +16,7 @@ import {
   Settings,
   Calendar,
   User,
+  Star,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
