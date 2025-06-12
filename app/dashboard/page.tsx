@@ -88,7 +88,7 @@ export default function DashboardPage() {
             name
           )
         `)
-        , user?.id);
+        ;
 
       if (error) throw error;
 

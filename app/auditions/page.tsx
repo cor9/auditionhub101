@@ -98,7 +98,7 @@ export default function AuditionsPage() {
             name
           )
         `)
-        , user?.id)
+        
         .order('audition_date', { ascending: false });
 
       if (error) throw error;
