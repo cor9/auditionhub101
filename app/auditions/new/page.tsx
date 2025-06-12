@@ -85,9 +85,6 @@ export default function NewAuditionPage() {
     return age;
   };
 
-  const [headshotUrl, setHeadshotUrl] = useState("");
-const [resumeUrl, setResumeUrl] = useState("");
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
