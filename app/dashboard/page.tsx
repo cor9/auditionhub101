@@ -84,7 +84,7 @@ export default function DashboardPage() {
         .from('auditions')
         .select(`
           *,
-          actors (
+          actors!actor_id (
             name
           )
         `)
