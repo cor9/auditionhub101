@@ -31,7 +31,7 @@ import Link from "next/link";
 interface ActorProfile {
   id: string;
   name: string;
-  age: number;
+  dob: string;
   is_active: boolean;
 }
 
@@ -54,8 +54,7 @@ export default function NewAuditionPage() {
     try {
       const { data, error } = await supabase
         .from('actors')
-        .select('id, name, age, is_active')
-        
+        .select('id, name, dob, is_active')
         .eq('is_active', true)
         .order('name');
 
@@ -73,6 +72,17 @@ export default function NewAuditionPage() {
     }
   };
 
+  const calculateAge = (dob: string) => {
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -81,22 +91,22 @@ export default function NewAuditionPage() {
       const formData = new FormData(e.currentTarget);
       
       const auditionData = {
-        user_id: user?.id,
         actor_id: formData.get("actor"),
-        project_title: formData.get("projectTitle"),
-        role_name: formData.get("roleName"),
-        role_size: formData.get("roleSize") || "COSTAR",
-        type: formData.get("type"),
-        casting_director: formData.get("castingDirector"),
+        project_title: formData.get("project_title"),
+        role_name: formData.get("role_name"),
+        role_size: formData.get("role_size") || "costar",
+        project_type: formData.get("project_type"),
+        appt_type: formData.get("appt_type") || "self_tape",
+        status: "submitted",
+        casting_director: formData.get("casting_director"),
         is_in_person: formData.get("location") ? true : false,
-        location: formData.get("location") || "Virtual",
+        location: formData.get("location") || null,
         audition_date: date?.toISOString(),
-        source: formData.get("source") || "SELF_SUBMIT",
-        union: formData.get("union") || "NON_UNION",
+        source: formData.get("source") || "self",
+        is_union: formData.get("is_union") === "true",
         breakdown: formData.get("breakdown"),
-        date_submitted: new Date().toISOString(),
-        notes: formData.get("notes"),
-        status: 'PENDING',
+        date_submitted: new Date().toISOString().split('T')[0],
+        notes: formData.get("notes") || null,
       };
 
       const { error } = await supabase
@@ -192,18 +202,17 @@ export default function NewAuditionPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Essential Fields Only */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="actor">Which Actor? *</Label>
+                <Label htmlFor="actor">Select Actor *</Label>
                 <Select name="actor" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select actor" />
+                    <SelectValue placeholder="Choose an actor" />
                   </SelectTrigger>
                   <SelectContent>
                     {actors.map((actor) => (
                       <SelectItem key={actor.id} value={actor.id}>
-                        {actor.name} (Age {actor.age})
+                        {actor.name} (Age {calculateAge(actor.dob)})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -211,20 +220,20 @@ export default function NewAuditionPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="projectTitle">Project Title *</Label>
+                <Label htmlFor="project_title">Project Title *</Label>
                 <Input
-                  id="projectTitle"
-                  name="projectTitle"
+                  id="project_title"
+                  name="project_title"
                   placeholder="e.g., Disney Channel Series"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="roleName">Role Name *</Label>
+                <Label htmlFor="role_name">Role Name *</Label>
                 <Input
-                  id="roleName"
-                  name="roleName"
+                  id="role_name"
+                  name="role_name"
                   placeholder="e.g., Lead Child Role"
                   required
                 />
@@ -232,18 +241,54 @@ export default function NewAuditionPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="type">Project Type *</Label>
-                  <Select name="type" required>
+                  <Label htmlFor="project_type">Project Type *</Label>
+                  <Select name="project_type" required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="TV">TV</SelectItem>
-                      <SelectItem value="FILM">Film</SelectItem>
-                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                      <SelectItem value="THEATRE">Theatre</SelectItem>
-                      <SelectItem value="VOICEOVER">Voiceover</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
+                      <SelectItem value="tv">TV</SelectItem>
+                      <SelectItem value="film">Film</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="theatre">Theatre</SelectItem>
+                      <SelectItem value="voice_over">Voice Over</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="role_size">Role Size</Label>
+                  <Select name="role_size">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="principal">Principal</SelectItem>
+                      <SelectItem value="supporting">Supporting</SelectItem>
+                      <SelectItem value="lead">Lead</SelectItem>
+                      <SelectItem value="series_regular">Series Regular</SelectItem>
+                      <SelectItem value="recurring">Recurring</SelectItem>
+                      <SelectItem value="guest_star">Guest Star</SelectItem>
+                      <SelectItem value="costar">Co-Star</SelectItem>
+                      <SelectItem value="contract">Contract</SelectItem>
+                      <SelectItem value="featured">Featured</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="appt_type">Audition Type *</Label>
+                  <Select name="appt_type" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="How will you audition?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="self_tape">Self Tape</SelectItem>
+                      <SelectItem value="in_person">In Person</SelectItem>
+                      <SelectItem value="zoom">Zoom</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -276,10 +321,10 @@ export default function NewAuditionPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="castingDirector">Casting Director *</Label>
+                <Label htmlFor="casting_director">Casting Director *</Label>
                 <Input
-                  id="castingDirector"
-                  name="castingDirector"
+                  id="casting_director"
+                  name="casting_director"
                   placeholder="e.g., Sarah Johnson"
                   required
                 />
@@ -292,6 +337,39 @@ export default function NewAuditionPage() {
                   name="location"
                   placeholder="Leave blank for virtual auditions"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="source">Source</Label>
+                  <Select name="source">
+                    <SelectTrigger>
+                      <SelectValue placeholder="How did you get this?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="self">Self Submit</SelectItem>
+                      <SelectItem value="theatrical_agent">Theatrical Agent</SelectItem>
+                      <SelectItem value="commercial_agent">Commercial Agent</SelectItem>
+                      <SelectItem value="regional_agent">Regional Agent</SelectItem>
+                      <SelectItem value="vo_agent">VO Agent</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="production">Production</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="is_union">Union Status</Label>
+                  <Select name="is_union">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Union or Non-Union?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Union</SelectItem>
+                      <SelectItem value="false">Non-Union</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
