@@ -173,32 +173,31 @@ export default function DashboardPage() {
     );
   }
 
-  return (
+ return (
+  <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
     <div className="flex items-center justify-between">
-  <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-  <div className="flex items-center space-x-2">
-    <Button asChild variant="outline">
-      <Link href="/settings/actors">
-        <User className="mr-2 h-4 w-4" />
-        Add Actor
-      </Link>
-    </Button>
-    <Button asChild>
-      <Link href="/auditions/new">
-        <FilmIcon className="mr-2 h-4 w-4" />
-        New Audition
-      </Link>
-    </Button>
-  </div>
-</div>
+      <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div className="flex items-center space-x-2">
+        <Button asChild variant="outline">
+          <Link href="/settings/actors">
+            <User className="mr-2 h-4 w-4" />
+            Add Actor
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/auditions/new">
+            <FilmIcon className="mr-2 h-4 w-4" />
+            New Audition
+          </Link>
+        </Button>
+      </div>
+    </div>
 
-
-
-   <Tabs
-  defaultValue="overview"
-  onValueChange={setActiveTab}
-  className="space-y-4"
->
+    <Tabs
+      defaultValue="overview"
+      onValueChange={setActiveTab}
+      className="space-y-4"
+    >
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
