@@ -20,6 +20,7 @@ interface FeatureCardProps {
   gradientFrom: string;
   gradientTo: string;
   isPopular?: boolean;
+  href: string;
 }
 
 function FeatureCard({
@@ -30,12 +31,16 @@ function FeatureCard({
   gradientFrom,
   gradientTo,
   isPopular = false,
+  href,
 }: FeatureCardProps) {
   return (
-    <div className={cn(
-      "group relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1",
-      isPopular && "ring-2 ring-primary/50 shadow-lg shadow-primary/20"
-    )}>
+    <Link 
+      href={href}
+      className={cn(
+        "group relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 cursor-pointer block",
+        isPopular && "ring-2 ring-primary/50 shadow-lg shadow-primary/20"
+      )}
+    >
       {isPopular && (
         <div className="absolute -top-2 -right-2">
           <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -72,7 +77,7 @@ function FeatureCard({
       
       {/* Subtle hover effect background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-    </div>
+    </Link>
   );
 }
 
@@ -172,6 +177,7 @@ export default function Home() {
                 gradientFrom="from-pink-500/20"
                 gradientTo="to-pink-700/10"
                 isPopular={true}
+                href="/auditions"
               />
               <FeatureCard
                 icon={Calendar}
@@ -180,6 +186,7 @@ export default function Home() {
                 iconColor="text-orange-500"
                 gradientFrom="from-orange-500/20"
                 gradientTo="to-orange-600/10"
+                href="/calendar"
               />
               <FeatureCard
                 icon={LineChart}
@@ -188,6 +195,7 @@ export default function Home() {
                 iconColor="text-violet-500"
                 gradientFrom="from-violet-500/20"
                 gradientTo="to-violet-600/10"
+                href="/dashboard"
               />
             </div>
             
@@ -200,6 +208,7 @@ export default function Home() {
                 iconColor="text-rose-500"
                 gradientFrom="from-rose-500/20"
                 gradientTo="to-rose-600/10"
+                href="/services"
               />
               <FeatureCard
                 icon={Receipt}
@@ -208,6 +217,7 @@ export default function Home() {
                 iconColor="text-blue-500"
                 gradientFrom="from-blue-500/20"
                 gradientTo="to-blue-600/10"
+                href="/expenses"
               />
             </div>
           </div>
