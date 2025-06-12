@@ -51,3 +51,21 @@ export async function isAuthenticated() {
   const session = await getSession()
   return !!session?.user
 }
+
+// Export getCurrentUser as an alias for getUser (for compatibility)
+export const getCurrentUser = getUser
+
+// Alternative: Server-side getCurrentUser for API routes
+export async function getCurrentUserServer() {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) {
+      console.error('Error getting user:', error)
+      return null
+    }
+    return user
+  } catch (error) {
+    console.error('Server auth error:', error)
+    return null
+  }
+}
