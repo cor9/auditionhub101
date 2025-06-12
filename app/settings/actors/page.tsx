@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { FileUpload } from "@/components/FileUpload";
 import { Plus, Pencil, Trash2, User, Loader2, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -43,6 +44,8 @@ export default function ActorsSettingsPage() {
   const { user } = useSession();
   const { toast } = useToast();
   const [actors, setActors] = useState<ActorProfile[]>([]);
+  const [headshotUrl, setHeadshotUrl] = useState("");
+const [resumeUrl, setResumeUrl] = useState("");
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,21 +92,20 @@ export default function ActorsSettingsPage() {
     
     const formData = new FormData(e.currentTarget);
     
-    const actorData = {
-      name: formData.get("name") as string,
-      gender: formData.get("gender") as string || null,
-      email: formData.get("email") as string || null,
-      dob: formData.get("dob") as string || null,
-      commercial_agent: formData.get("commercial_agent") as string || null,
-      theatrical_agent: formData.get("theatrical_agent") as string || null,
-      regional_agent: formData.get("regional_agent") as string || null,
-      vo_agent: formData.get("vo_agent") as string || null,
-      manager: formData.get("manager") as string || null,
-      headshot_url: formData.get("headshot_url") as string || null,
-      resume_url: formData.get("resume_url") as string || null,
-      user_id: user?.id,
-    };
-
+   const actorData = {
+  name: formData.get("name") as string,
+  gender: formData.get("gender") as string || null,
+  email: formData.get("email") as string || null,
+  dob: formData.get("dob") as string || null,
+  commercial_agent: formData.get("commercial_agent") as string || null,
+  theatrical_agent: formData.get("theatrical_agent") as string || null,
+  regional_agent: formData.get("regional_agent") as string || null,
+  vo_agent: formData.get("vo_agent") as string || null,
+  manager: formData.get("manager") as string || null,
+  headshot_url: headshotUrl || null,  // Use uploaded URL
+  resume_url: resumeUrl || null,      // Use uploaded URL
+  user_id: user?.id,
+};
     // Validate required fields
     if (!actorData.name || !actorData.dob || !user?.id) {
       toast({
@@ -474,32 +476,26 @@ export default function ActorsSettingsPage() {
             </div>
 
             {/* Media Files */}
-            <div className="space-y-4">
+           <div className="space-y-4">
               <h4 className="text-sm font-medium text-muted-foreground">Materials</h4>
               
-              <div className="space-y-2">
-                <Label htmlFor="headshot_url">Headshot URL</Label>
-                <Input 
-                  id="headshot_url" 
-                  name="headshot_url" 
-                  type="url"
-                  disabled={isSaving}
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.headshot_url : ""}
-                  placeholder="https://example.com/headshot.jpg"
-                />
-              </div>
+              <FileUpload
+                bucketName="actor-materials.headshots.resume"
+                folder="headshots"
+                acceptedTypes="image/*"
+                label="Headshot"
+                onUploadComplete={(url) => setHeadshotUrl(url)}
+                currentUrl={isEditing ? actors.find(a => a.id === isEditing)?.headshot_url : ""}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="resume_url">Resume URL</Label>
-                <Input 
-                  id="resume_url" 
-                  name="resume_url" 
-                  type="url"
-                  disabled={isSaving}
-                  defaultValue={isEditing ? actors.find(a => a.id === isEditing)?.resume_url : ""}
-                  placeholder="https://example.com/resume.pdf"
-                />
-              </div>
+              <FileUpload
+                bucketName="actor-materials.headshots.resume"
+                folder="resumes"
+                acceptedTypes="application/pdf"
+                label="Resume (PDF)"
+                onUploadComplete={(url) => setResumeUrl(url)}
+                currentUrl={isEditing ? actors.find(a => a.id === isEditing)?.resume_url : ""}
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t">
