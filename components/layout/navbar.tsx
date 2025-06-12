@@ -59,6 +59,13 @@ const routes = [
     color: "text-emerald-500",
     requiresAuth: true,
   },
+   {
+    label: "Services",
+    icon: Star,
+    href: "/services",
+    color: "text-blue-500",
+    requiresAuth: true,
+  },
 ];
 
 export default function Navbar() {
