@@ -31,14 +31,14 @@ import { supabase } from "@/lib/supabase";
 import { useSession } from "@/components/session-provider";
 
 // Define types locally
-type AuditionType = 'TV' | 'FILM' | 'COMMERCIAL' | 'THEATRE' | 'VOICEOVER' | 'OTHER';
-type AuditionStatus = 'PENDING' | 'SUBMITTED' | 'CALLBACK' | 'BOOKED' | 'RELEASED';
+type AuditionType = 'tv' | 'film' | 'commercial' | 'theatre' | 'voice_over' | 'other';
+type AuditionStatus = 'submitted' | 'passed' | 'pinned' | 'on_avail' | 'testing' | 'booked';
 
 interface Audition {
   id: string;
   project_title: string;
   role_name: string;
-  project_type: string;  // ← Changed from 'type'
+  project_type: string;
   status: AuditionStatus;
   audition_date: string;
   casting_director: string;
@@ -49,28 +49,30 @@ interface Audition {
 }
 
 const statusColors = {
-  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  SUBMITTED: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  CALLBACK: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  BOOKED: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  RELEASED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  submitted: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  passed: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  pinned: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  on_avail: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  testing: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  booked: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
 };
 
 const typeColors = {
-  TV: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
-  FILM: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300", 
-  COMMERCIAL: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-  THEATRE: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
-  VOICE_OVER: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",  // Changed from VOICEOVER
-  OTHER: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  tv: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
+  film: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300", 
+  commercial: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  theatre: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
+  voice_over: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",
+  other: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 
 const statusIcons = {
-  PENDING: ClockIcon,
-  SUBMITTED: SendIcon,
-  CALLBACK: ThumbsUpIcon,
-  BOOKED: CheckCircle2Icon,
-  RELEASED: X,
+  submitted: SendIcon,
+  passed: X,
+  pinned: ClockIcon,
+  on_avail: ThumbsUpIcon,
+  testing: ClockIcon,
+  booked: CheckCircle2Icon,
 };
 
 export default function AuditionsPage() {
@@ -94,11 +96,10 @@ export default function AuditionsPage() {
         .from('auditions')
         .select(`
           *,
-          actors (
+          actors!actor_id (
             name
           )
         `)
-        
         .order('audition_date', { ascending: false });
 
       if (error) throw error;
@@ -121,7 +122,7 @@ export default function AuditionsPage() {
     const matchesStatus = statusFilter === "ALL" || audition.status === statusFilter;
 
     // Type filter
-   const matchesType = typeFilter === "ALL" || audition.project_type === typeFilter;
+    const matchesType = typeFilter === "ALL" || audition.project_type === typeFilter;
 
     // Tab filter
     const auditionDate = new Date(audition.audition_date);
@@ -129,9 +130,9 @@ export default function AuditionsPage() {
       activeTab === "all" ||
       (activeTab === "upcoming" &&
         auditionDate > new Date() &&
-        ["PENDING", "SUBMITTED", "CALLBACK"].includes(audition.status)) ||
+        ["submitted", "pinned", "on_avail", "testing"].includes(audition.status)) ||
       (activeTab === "past" &&
-        (auditionDate <= new Date() || ["BOOKED", "RELEASED"].includes(audition.status)));
+        (auditionDate <= new Date() || ["booked", "passed"].includes(audition.status)));
 
     return matchesSearch && matchesStatus && matchesType && matchesTab;
   });
@@ -194,20 +195,23 @@ export default function AuditionsPage() {
               <DropdownMenuItem onClick={() => setStatusFilter("ALL")}>
                 All Statuses
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("PENDING")}>
-                Pending
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("SUBMITTED")}>
+              <DropdownMenuItem onClick={() => setStatusFilter("submitted")}>
                 Submitted
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("CALLBACK")}>
-                Callback
+              <DropdownMenuItem onClick={() => setStatusFilter("passed")}>
+                Passed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("BOOKED")}>
+              <DropdownMenuItem onClick={() => setStatusFilter("pinned")}>
+                Pinned
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter("on_avail")}>
+                On Avail
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter("testing")}>
+                Testing
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter("booked")}>
                 Booked
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("RELEASED")}>
-                Released
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -224,21 +228,22 @@ export default function AuditionsPage() {
               <DropdownMenuItem onClick={() => setTypeFilter("ALL")}>
                 All Types
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("TV")}>
+              <DropdownMenuItem onClick={() => setTypeFilter("tv")}>
                 TV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("FILM")}>
+              <DropdownMenuItem onClick={() => setTypeFilter("film")}>
                 Film
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("COMMERCIAL")}>
+              <DropdownMenuItem onClick={() => setTypeFilter("commercial")}>
                 Commercial
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("THEATRE")}>
+              <DropdownMenuItem onClick={() => setTypeFilter("theatre")}>
                 Theatre
               </DropdownMenuItem>
-           <DropdownMenuItem onClick={() => setTypeFilter("VOICE_OVER")}> 
-</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTypeFilter("OTHER")}>
+              <DropdownMenuItem onClick={() => setTypeFilter("voice_over")}>
+                Voice Over
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTypeFilter("other")}>
                 Other
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -358,21 +363,21 @@ function AuditionCard({ audition }: AuditionCardProps) {
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-bold text-lg">{audition.project_title}</h3>
               <Badge
-  className={cn(
-    "ml-auto sm:ml-0",
-    typeColors[audition.project_type.toUpperCase() as AuditionType]  // Add toUpperCase()
-  )}
-  variant="outline"
->
-  {audition.project_type}
-</Badge>
+                className={cn(
+                  "ml-auto sm:ml-0",
+                  typeColors[audition.project_type as AuditionType] || typeColors.other
+                )}
+                variant="outline"
+              >
+                {audition.project_type?.toUpperCase() || 'OTHER'}
+              </Badge>
               
               <Badge
-                className={cn(statusColors[audition.status])}
+                className={cn(statusColors[audition.status] || statusColors.submitted)}
                 variant="outline"
               >
                 <StatusIcon className="mr-1 h-3 w-3" />
-                {audition.status.charAt(0) + audition.status.slice(1).toLowerCase()}
+                {audition.status?.charAt(0).toUpperCase() + audition.status?.slice(1).toLowerCase()}
               </Badge>
             </div>
             <p className="text-sm font-medium">Role: {audition.role_name}</p>
