@@ -32,7 +32,7 @@ const services = [
       "Delivered via email"
     ],
     icon: BookOpen,
-    checkoutUrl: "https://buy.stripe.com/00gaGl6dR2Mx7mgg29",
+    checkoutUrl: "https://www.childactor101.com/prep101",
     color: "text-blue-500",
     gradientFrom: "from-blue-500/20",
     gradientTo: "to-blue-500/5"
@@ -49,7 +49,7 @@ const services = [
       "Up to 7 minutes of video"
     ],
     icon: Camera,
-    checkoutUrl: "https://buy.stripe.com/bJe5kDcSrf677IxdgC",
+    checkoutUrl: "https://www.childactor101.com/home/selftapefeedback",
     color: "text-purple-500",
     gradientFrom: "from-purple-500/20",
     gradientTo: "to-purple-500/5"
@@ -83,7 +83,7 @@ const services = [
       "25 minute Zoom session"
     ],
     icon: MessageCircle,
-    checkoutUrl: "https://buy.stripe.com/4gM7sLdWvbTVd2Rccy2wU3o",
+    checkoutUrl: "https://www.childactor101.com/home/private-coaching",
     color: "text-rose-500",
     gradientFrom: "from-rose-500/20",
     gradientTo: "to-rose-500/5"
