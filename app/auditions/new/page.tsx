@@ -44,6 +44,7 @@ export default function NewAuditionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actors, setActors] = useState<ActorProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidesUrl, setSidesUrl] = useState("");
 
   useEffect(() => {
     if (user?.id) {
@@ -95,24 +96,24 @@ const [resumeUrl, setResumeUrl] = useState("");
       const formData = new FormData(e.currentTarget);
       
       const auditionData = {
-        actor_id: formData.get("actor"),
-        project_title: formData.get("project_title"),
-        role_name: formData.get("role_name"),
-        role_size: formData.get("role_size") || "costar",
-        project_type: formData.get("project_type"),
-        appt_type: formData.get("appt_type") || "self_tape",
-        status: "submitted",
-        casting_director: formData.get("casting_director"),
-        is_in_person: formData.get("location") ? true : false,
-        location: formData.get("location") || null,
-        audition_date: date?.toISOString(),
-        source: formData.get("source") || "self",
-        is_union: formData.get("is_union") === "true",
-        breakdown: formData.get("breakdown"),
-        date_submitted: new Date().toISOString().split('T')[0],
-        notes: formData.get("notes") || null,
-      };
-
+  actor_id: formData.get("actor"),
+  project_title: formData.get("project_title"),
+  role_name: formData.get("role_name"),
+  role_size: formData.get("role_size") || "costar",
+  project_type: formData.get("project_type"),
+  appt_type: formData.get("appt_type") || "self_tape",
+  status: "submitted",
+  casting_director: formData.get("casting_director"),
+  is_in_person: formData.get("location") ? true : false,
+  location: formData.get("location") || null,
+  audition_date: date?.toISOString(),
+  source: formData.get("source") || "self",
+  is_union: formData.get("is_union") === "true",
+  breakdown: formData.get("breakdown"),
+  date_submitted: new Date().toISOString().split('T')[0],
+  notes: formData.get("notes") || null,
+  sides_url: sidesUrl || null,  // Add this field
+};
       const { error } = await supabase
         .from('auditions')
         .insert([auditionData]);
@@ -397,6 +398,16 @@ const [resumeUrl, setResumeUrl] = useState("");
                 />
               </div>
             </div>
+            <div className="space-y-2">
+  <FileUpload
+    bucketName="sides"
+    folder={`audition-${Date.now()}`}
+    acceptedTypes="application/pdf,image/*"
+    label="Sides / Script (PDF or Images)"
+    onUploadComplete={(url) => setSidesUrl(url)}
+  />
+</div>
+            
 
             <div className="flex justify-end gap-4 pt-4">
               <Button
