@@ -12,6 +12,7 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex gap-4">
+          {/* Temporarily commented out until pages are properly created
           <Link
             href="/terms"
             className="text-sm text-muted-foreground underline underline-offset-4"
@@ -30,6 +31,10 @@ export default function Footer() {
           >
             Contact
           </Link>
+          */}
+          <span className="text-sm text-muted-foreground">
+            Links coming soon
+          </span>
         </div>
       </div>
     </footer>
