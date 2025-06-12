@@ -88,7 +88,7 @@ export default function DashboardPage() {
             name
           )
         `)
-        .eq('user_id', user?.id);
+        , user?.id);
 
       if (error) throw error;
 

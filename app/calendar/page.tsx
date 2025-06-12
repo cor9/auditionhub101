@@ -59,7 +59,7 @@ export default function CalendarPage() {
             name
           )
         `)
-        .eq('user_id', user?.id)
+        , user?.id)
         .order('audition_date', { ascending: true });
 
       if (error) throw error;

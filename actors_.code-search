@@ -1,0 +1,43 @@
+# Query: actors(
+# ContextLines: 1
+
+9 results - 3 files
+
+app/auditions/new/page.tsx:
+  48      if (user?.id) {
+  49:       fetchActors();
+  50      }
+
+  62        if (error) throw error;
+  63:       setActors(data || []);
+  64      } catch (error) {
+
+app/settings/actors/page.tsx:
+   47      if (user?.id) {
+   48:       fetchActors();
+   49      }
+
+   78        
+   79:       setActors(data || []);
+   80      } catch (error: any) {
+
+  152        setIsAddingNew(false);
+  153:       await fetchActors(); // Refresh the list
+  154      } catch (error: any) {
+
+  179  
+  180:       setActors(actors.filter(actor => actor.id !== id));
+  181        toast({
+
+  204  
+  205:       setActors(actors.map(actor => 
+  206          actor.id === id ? { ...actor, is_active: isActive } : actor
+
+supabase/migrations/20250605025337_tiny_grove.sql:
+   27    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+   28:   actor_id uuid REFERENCES actors(id) ON DELETE CASCADE NOT NULL,
+   29    project_title text NOT NULL,
+
+  134  -- Indexes
+  135: CREATE INDEX IF NOT EXISTS actors_user_id_idx ON actors(user_id);
+  136  CREATE INDEX IF NOT EXISTS auditions_actor_id_idx ON auditions(actor_id);

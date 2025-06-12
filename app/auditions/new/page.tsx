@@ -55,7 +55,7 @@ export default function NewAuditionPage() {
       const { data, error } = await supabase
         .from('actors')
         .select('id, name, age, is_active')
-        .eq('user_id', user?.id)
+        , user?.id)
         .eq('is_active', true)
         .order('name');
 

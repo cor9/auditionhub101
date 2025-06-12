@@ -68,7 +68,7 @@ export default function ActorsSettingsPage() {
       const { data, error } = await supabase
         .from('actors')
         .select('*')
-        .eq('user_id', user?.id)
+        , user?.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -121,7 +121,7 @@ export default function ActorsSettingsPage() {
           .from('actors')
           .update(actorData)
           .eq('id', isEditing)
-          .eq('user_id', user?.id);
+          , user?.id);
 
         if (error) {
           console.error('Update error:', error);
@@ -173,7 +173,7 @@ export default function ActorsSettingsPage() {
         .from('actors')
         .delete()
         .eq('id', id)
-        .eq('user_id', user?.id);
+        , user?.id);
 
       if (error) throw error;
 
@@ -198,7 +198,7 @@ export default function ActorsSettingsPage() {
         .from('actors')
         .update({ is_active: isActive })
         .eq('id', id)
-        .eq('user_id', user?.id);
+        , user?.id);
 
       if (error) throw error;
 
