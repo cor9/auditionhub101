@@ -155,14 +155,6 @@ export default function Home() {
               gradientFrom="from-blue-500/20"
               gradientTo="to-blue-500/5"
             />
-            <FeatureCard
-              icon={MailCheck}
-              title="Email Integration"
-              description="Automatically parse and import audition details from casting emails."
-              iconColor="text-emerald-500"
-              gradientFrom="from-emerald-500/20"
-              gradientTo="to-emerald-500/5"
-            />
           </div>
         </div>
       </section>
