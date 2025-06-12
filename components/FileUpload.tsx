@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,9 @@ export function FileUpload({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState(currentUrl || "");
   const { toast } = useToast();
+  
+  // Add ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File) => {
     setUploading(true);
@@ -112,6 +115,11 @@ export function FileUpload({
     return <Image className="h-8 w-8" />;
   };
 
+  // Fixed click handler using ref
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -149,6 +157,7 @@ export function FileUpload({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Input
+              ref={fileInputRef}
               type="file"
               accept={acceptedTypes}
               onChange={handleFileSelect}
@@ -159,7 +168,7 @@ export function FileUpload({
               type="button"
               variant="outline"
               disabled={uploading}
-              onClick={() => document.querySelector(`input[type="file"]`)?.click()}
+              onClick={triggerFileSelect}
             >
               <Upload className="h-4 w-4 mr-2" />
               Upload
