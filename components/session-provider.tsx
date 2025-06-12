@@ -21,6 +21,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('📱 Initial session:', session?.user?.id);
+      console.log('📱 Full user object:', session?.user);
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -28,13 +30,26 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state changed:', event);
+      console.log('🔄 New user ID:', session?.user?.id);
+      console.log('🔄 Expected user ID: 48c3f5e5-dd4c-49ff-a288-3aacd33b67c1');
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Additional debug logging
+  useEffect(() => {
+    if (user) {
+      console.log('👤 Current user from session provider:', user.id);
+      console.log('✅ User is authenticated');
+    } else {
+      console.log('❌ No user in session provider');
+    }
+  }, [user]);
 
   return (
     <SessionContext.Provider value={{ user, loading }}>
