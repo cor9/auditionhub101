@@ -238,7 +238,11 @@ export default function DashboardPage() {
               trend="down"
               trendValue="0%"
             />
-          </div>
+
+           </div>
+        </TabsContent>
+</Tabs>
+    
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="col-span-4">
