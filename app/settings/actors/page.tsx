@@ -29,6 +29,9 @@ interface ActorProfile {
   dob?: string;
   commercial_agent?: string;
   theatrical_agent?: string;
+  regional_agent?: string;
+  vo_agent?: string;
+  manager?: string;
   headshot_url?: string;
   resume_url?: string;
   is_active: boolean;
@@ -93,6 +96,9 @@ export default function ActorsSettingsPage() {
       dob: formData.get("dob") as string || null,
       commercial_agent: formData.get("commercial_agent") as string || null,
       theatrical_agent: formData.get("theatrical_agent") as string || null,
+      regional_agent: formData.get("regional_agent") as string || null,
+      vo_agent: formData.get("vo_agent") as string || null,
+      manager: formData.get("manager") as string || null,
       headshot_url: formData.get("headshot_url") as string || null,
       resume_url: formData.get("resume_url") as string || null,
       user_id: user?.id,
