@@ -28,7 +28,23 @@ import {
   ReceiptIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ExpenseCategory, ExpenseData } from "@/types";
+import { useSession } from "@/components/session-provider";
+import Link from "next/link";
+
+// Define types locally since we don't know the types file structure
+type ExpenseCategory = 'COACHING' | 'SELF_TAPE_GEAR' | 'TRAVEL' | 'WARDROBE' | 'HEADSHOTS' | 'MEMBERSHIPS' | 'OTHER';
+
+interface ExpenseData {
+  id: string;
+  amount: number;
+  description: string;
+  category: ExpenseCategory;
+  date: Date;
+  reimbursable: boolean;
+  reimbursed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Mock data for demonstration
 const mockExpenses: ExpenseData[] = [
@@ -78,9 +94,38 @@ const categoryIcons: Record<ExpenseCategory, React.ElementType> = {
 };
 
 export default function ExpensesPage() {
+  const { user, loading } = useSession();
   const [date, setDate] = useState<Date>();
   const [expenses, setExpenses] = useState(mockExpenses);
   const [showAddExpense, setShowAddExpense] = useState(false);
+
+  // Add authentication checks
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to view expenses
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const reimbursableTotal = expenses
