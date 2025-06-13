@@ -59,7 +59,7 @@ interface UpcomingAudition {
 const COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"];
 
 export default function DashboardPage() {
-  const { user } = useSession();
+  const { user, loading } = useSession();
   const [activeTab, setActiveTab] = useState("overview");
   const [auditionsByStatus, setAuditionsByStatus] = useState<AuditionStatusCount[]>([]);
   const [auditionsByMonth, setAuditionsByMonth] = useState<AuditionMonthCount[]>([]);
@@ -146,6 +146,17 @@ export default function DashboardPage() {
       setIsLoading(false);
     }
   };
+
+  if (loading) {
+  return (
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-2 text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
   if (!user) {
     return (
