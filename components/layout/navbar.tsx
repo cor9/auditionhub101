@@ -29,7 +29,7 @@ const routes = [
   {
     label: "Home",
     icon: Home,
-    href: "https://www.childactor101.com",
+    href: "/",
     color: "text-sky-500",
   },
   {
