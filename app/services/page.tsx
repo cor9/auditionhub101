@@ -17,7 +17,8 @@ import {
   MessageCircle,
   Video,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useSession } from "@/components/session-provider";
+import { useToast } from "@/hooks/use-toast";
 
 const services = [
   {
@@ -112,26 +113,35 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service }: ServiceCardProps) {
+  const { toast } = useToast();
+
   const handleAccess = () => {
     if (service.price === 0) {
-      toast.success("Access granted to Bold Choices Game!");
+      toast({
+        title: "Success!",
+        description: "Access granted to Bold Choices Game!",
+      });
+      // Open the URL in a new tab
+      window.open(service.checkoutUrl, '_blank');
     }
   };
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div
             className={`rounded-full bg-gradient-to-b p-2 ${service.gradientFrom} ${service.gradientTo}`}
           >
             <service.icon className={`h-6 w-6 ${service.color}`} />
           </div>
-          <CardTitle>{service.title}</CardTitle>
+          <CardTitle className="text-lg">{service.title}</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <CardDescription className="mb-4">{service.description}</CardDescription>
+        <CardDescription className="mb-4 text-base leading-relaxed">
+          {service.description}
+        </CardDescription>
         <ul className="space-y-2 text-sm">
           {service.features.map((feature) => (
             <li key={feature} className="flex items-center">
@@ -142,7 +152,7 @@ function ServiceCard({ service }: ServiceCardProps) {
         </ul>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
-        <div className="text-2xl font-bold text-primary">
+        <div className="text-3xl font-bold text-primary">
           {service.price === 0 ? "FREE" : `$${service.price.toFixed(2)}`}
         </div>
         <Button 
@@ -152,10 +162,10 @@ function ServiceCard({ service }: ServiceCardProps) {
         >
           {service.price > 0 ? (
             <Link href={service.checkoutUrl} target="_blank">
-              Purchase
+              Purchase Now
             </Link>
           ) : (
-            "Access Now"
+            "Access Free Game"
           )}
         </Button>
       </CardFooter>
@@ -164,12 +174,41 @@ function ServiceCard({ service }: ServiceCardProps) {
 }
 
 export default function ServicesPage() {
+  const { user, loading } = useSession();
+
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Please Sign In</h2>
+          <p className="text-muted-foreground">
+            You need to be signed in to view services
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Services</h2>
-        <p className="text-muted-foreground">
-          Professional services to enhance your child's acting career
+    <div className="flex-1 space-y-6 p-4 pt-6 md:p-8">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Professional Services</h2>
+        <p className="text-muted-foreground text-lg">
+          Expert coaching and resources to enhance your child's acting career
         </p>
       </div>
 
