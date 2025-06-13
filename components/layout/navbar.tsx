@@ -86,7 +86,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Link href="https://www.childactor101.com" className="mr-6 flex items-center space-x-2">
             <Image src="/101logo.png" alt="Child Actor 101" width={32} height={32} className="h-8 w-auto" />
             <span className="hidden font-bold sm:inline-block">
               Child Actor 101
