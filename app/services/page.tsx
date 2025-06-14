@@ -162,7 +162,7 @@ function ServiceCard({ service }: ServiceCardProps) {
         >
           {service.price > 0 ? (
             <Link href={service.checkoutUrl} target="_blank">
-              Purchase Now
+             Learn More
             </Link>
           ) : (
             "Access Free Game"
