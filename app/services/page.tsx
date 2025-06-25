@@ -101,7 +101,7 @@ const services = [
       "First-hand testimonials"
     ],
     icon: Video,
-    checkoutUrl: "https://buy.stripe.com/dR6g0F1XBdrbcGA4iZ",
+    checkoutUrl: "https://buy.stripe.com/00gg0FfOr1ItgWQ5mU",
     color: "text-amber-500",
     gradientFrom: "from-amber-500/20",
     gradientTo: "to-amber-500/5"
