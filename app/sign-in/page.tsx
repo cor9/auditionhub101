@@ -42,7 +42,8 @@ export default function SignInPage() {
         throw new Error(error.message);
       }
 
-      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+console.log("Redirecting to:", callbackUrl);
 window.location.href = callbackUrl;
 
       toast({
