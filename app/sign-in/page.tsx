@@ -43,8 +43,7 @@ export default function SignInPage() {
       }
 
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-      router.push(callbackUrl);
-      router.refresh();
+window.location.href = callbackUrl;
 
       toast({
         title: "Success",
